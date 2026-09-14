@@ -105,20 +105,41 @@ const { setUseLocalDb } = require('./models');
 
 const dbUri = isMongoConfigured ? process.env.MONGODB_URI : 'mongodb://localhost:27017/quickfix';
 
-mongoose.connect(dbUri, { serverSelectionTimeoutMS: 5000 })
-  .then(() => {
-    logger.info("Connected to MongoDB database successfully!");
+const connectWithRetry = (retries = 5, delay = 5000) => {
+  logger.info(`Attempting to connect to MongoDB... (${retries} retries left)`);
+  mongoose.connect(dbUri, { 
+    serverSelectionTimeoutMS: 15000,
+    connectTimeoutMS: 15000
   })
-  .catch(err => {
-    logger.error(`MongoDB connection error: ${err.message}`);
-    if (isProd) {
-      logger.error("FATAL ERROR: Production server cannot start without a valid MongoDB connection.");
-      process.exit(1);
-    } else {
-      logger.warn("Falling back to local JSON database storage (database.json) in development mode...");
-      setUseLocalDb(true);
-    }
-  });
+    .then(() => {
+      logger.info("Connected to MongoDB database successfully!");
+    })
+    .catch(err => {
+      logger.error(`MongoDB connection error: ${err.message}`);
+      if (retries > 1) {
+        logger.warn(`Retrying MongoDB connection in ${delay / 1000} seconds...`);
+        setTimeout(() => connectWithRetry(retries - 1, delay), delay);
+      } else {
+        if (isProd) {
+          logger.error("FATAL ERROR: Production server cannot start without a valid MongoDB connection after multiple attempts.");
+          process.exit(1);
+        } else {
+          logger.warn("Falling back to local JSON database storage (database.json) in development mode...");
+          setUseLocalDb(true);
+        }
+      }
+    });
+};
+
+mongoose.connection.on('disconnected', () => {
+  logger.warn('MongoDB disconnected. Driver will attempt to reconnect automatically.');
+});
+
+mongoose.connection.on('reconnected', () => {
+  logger.info('MongoDB reconnected successfully!');
+});
+
+connectWithRetry();
 
 // --- REGISTER MODULAR ROUTES ---
 app.use('/api/auth', require('./routes/auth'));
