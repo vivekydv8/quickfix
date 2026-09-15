@@ -5,7 +5,7 @@ class ApiEndpoints {
   );
   static final String baseUrl = _configuredBaseUrl.isNotEmpty
       ? _configuredBaseUrl
-      : 'https://quickfixapp-production.up.railway.app/api';
+      : 'https://quickfix-production-4c09.up.railway.app/api';
 
   // Authentication
   static const String sendOtp = '/auth/send-otp';

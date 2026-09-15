@@ -6,7 +6,7 @@ class ApiEndpoints {
 
   static final String baseUrl = _configuredBaseUrl.isNotEmpty
       ? _configuredBaseUrl
-      : 'https://quickfixapp-production.up.railway.app/api';
+      : 'https://quickfix-production-4c09.up.railway.app/api';
 
   // Provider Auth
   static const String login = '/provider/login';

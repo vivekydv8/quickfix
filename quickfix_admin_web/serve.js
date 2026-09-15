@@ -5,7 +5,7 @@ const path = require('path');
 const { URL } = require('url');
 
 const PORT = 8080;
-const REMOTE_BACKEND_HOST = 'quickfixapp-production.up.railway.app';
+const REMOTE_BACKEND_HOST = 'quickfix-production-4c09.up.railway.app';
 const DEFAULT_EDGE_IP = '69.46.46.69';
 
 let resolvedEdgeIp = DEFAULT_EDGE_IP;

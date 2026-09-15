@@ -1,4 +1,4 @@
-let PRIMARY_API_URL = 'https://quickfixapp-production.up.railway.app/api';
+let PRIMARY_API_URL = 'https://quickfix-production-4c09.up.railway.app/api';
 let PROXY_API_URL = (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.startsWith('http')) 
   ? window.location.origin + '/api' 
   : 'http://localhost:8080/api';
