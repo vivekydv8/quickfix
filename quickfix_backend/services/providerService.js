@@ -114,7 +114,17 @@ async function getDashboardStats(shopId) {
     throw err;
   }
 
-  const bookings = await Booking.find({ shopId });
+  const shopMatches = [shopId];
+  if (shop.id && !shopMatches.includes(shop.id)) shopMatches.push(shop.id);
+  if (shop._id) shopMatches.push(shop._id.toString());
+  const bookings = await Booking.find({
+    $or: [
+      { shopId: { $in: shopMatches } },
+      { shopId: 'ADMIN_INSTANT', status: 'pending' },
+      { shopId: null, status: 'pending' },
+      { shopId: '', status: 'pending' }
+    ]
+  });
   const today = new Date().toDateString();
 
   let todayOrders = 0;

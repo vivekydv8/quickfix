@@ -66,9 +66,10 @@ async function placeBooking(req, res) {
 }
 
 async function updateStatus(req, res) {
-  const { id, status, providerName } = req.body;
+  const { id, status, providerName, shopId } = req.body;
+  const effectiveShopId = shopId || (req.user && (req.user.shopId || req.user.id));
   try {
-    const booking = await bookingService.updateBookingStatus(id, status, providerName);
+    const booking = await bookingService.updateBookingStatus(id, status, providerName, effectiveShopId);
     res.json({ success: true, booking });
   } catch (e) {
     if (e.message === 'Booking not found') {

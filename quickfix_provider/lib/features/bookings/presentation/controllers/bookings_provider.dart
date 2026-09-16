@@ -121,6 +121,7 @@ class BookingsNotifier extends StateNotifier<BookingsState> {
         bookingId: bookingId,
         status: status,
         providerName: shop?.ownerName ?? 'Partner Service Agent',
+        shopId: shop?.id,
       );
 
       if (updatedBooking != null) {

@@ -9,6 +9,7 @@ abstract class BookingsRemoteDataSource {
     required String bookingId,
     required String status,
     required String providerName,
+    String? shopId,
   });
   Future<Response> uploadQuotation(String bookingId, Map<String, dynamic> quotationData);
   Future<Response> updateLiveLocation(double latitude, double longitude);
@@ -37,6 +38,7 @@ class BookingsRemoteDataSourceImpl implements BookingsRemoteDataSource {
     required String bookingId,
     required String status,
     required String providerName,
+    String? shopId,
   }) {
     return _dioClient.post(
       ApiEndpoints.updateBookingStatus,
@@ -44,6 +46,7 @@ class BookingsRemoteDataSourceImpl implements BookingsRemoteDataSource {
         'id': bookingId,
         'status': status,
         'providerName': providerName,
+        if (shopId != null) 'shopId': shopId,
       },
     );
   }

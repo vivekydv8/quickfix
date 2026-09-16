@@ -34,11 +34,13 @@ class BookingsRepositoryImpl implements BookingsRepository {
     required String bookingId,
     required String status,
     required String providerName,
+    String? shopId,
   }) async {
     final response = await _remoteDataSource.updateStatus(
       bookingId: bookingId,
       status: status,
       providerName: providerName,
+      shopId: shopId,
     );
 
     if (response.data != null && response.data['success'] == true) {

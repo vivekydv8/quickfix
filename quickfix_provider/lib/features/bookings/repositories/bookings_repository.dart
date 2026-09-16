@@ -7,6 +7,7 @@ abstract class BookingsRepository {
     required String bookingId,
     required String status,
     required String providerName,
+    String? shopId,
   });
   Future<bool> uploadQuotation({
     required String bookingId,

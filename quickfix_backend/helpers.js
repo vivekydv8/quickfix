@@ -44,15 +44,9 @@ function sanitizeBookingForPrivacy(booking) {
 // FCM Push Notification Helper for individual User
 async function sendFcmNotification(targetId, title, body, data = {}, targetType = 'user') {
   try {
-    if (!admin.apps.length) {
-      console.warn("FCM NOT SENT: Firebase Admin SDK is not initialized.");
-      return false;
-    }
-
-    let token = '';
     const isPartner = targetType === 'partner' || targetType === 'shop';
 
-    // Persist notification to DB so in-app notifications screen receives it
+    // 1. ALWAYS persist notification to DB so in-app notifications screen receives it
     try {
       const { Notification } = require('./models');
       const newNotif = new Notification({
@@ -71,6 +65,12 @@ async function sendFcmNotification(targetId, title, body, data = {}, targetType 
       await newNotif.save();
     } catch (dbErr) {
       console.error('Failed to persist notification to DB:', dbErr.message);
+    }
+
+    // 2. Check if Firebase Admin is available for OS Push Notification
+    if (!admin.apps || !admin.apps.length) {
+      console.warn("FCM NOT SENT: Firebase Admin SDK is not initialized on server. In-app notification was saved to DB.");
+      return false;
     }
 
     if (targetType === 'user') {
@@ -149,8 +149,30 @@ async function sendFcmNotification(targetId, title, body, data = {}, targetType 
 // FCM Push Notification Helper for Topic Subscribers
 async function sendFcmTopicNotification(topic, title, body, data = {}) {
   try {
-    if (!admin.apps.length) {
-      console.warn("FCM TOPIC NOT SENT: Firebase Admin SDK is not initialized.");
+    const isPartner = topic === 'providers';
+
+    // Persist broadcast alert to DB
+    try {
+      const { Notification } = require('./models');
+      const newAlert = new Notification({
+        id: `topic-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        title,
+        body,
+        time: new Date().toISOString(),
+        icon: data.icon || (isPartner ? 'work' : 'campaign'),
+        iconColor: data.iconColor || 'primary',
+        userId: !isPartner ? '' : '',
+        shopId: isPartner ? '' : '',
+        type: 'broadcast',
+        bookingId: data.bookingId || ''
+      });
+      await newAlert.save();
+    } catch (dbErr) {
+      console.error('Failed to persist topic notification to DB:', dbErr.message);
+    }
+
+    if (!admin.apps || !admin.apps.length) {
+      console.warn("FCM TOPIC NOT SENT: Firebase Admin SDK is not initialized on server. Broadcast saved to DB.");
       return false;
     }
 

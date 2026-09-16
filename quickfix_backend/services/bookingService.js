@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const { Booking, Shop, User, PaymentLedger, PaymentAuditLog } = require('../models');
 const { calculateCheckoutPriceInternal } = require('../pricingCalculator');
-const { sanitizeBookingForPrivacy, sendFcmNotification, paginate } = require('../helpers');
+const { sanitizeBookingForPrivacy, sendFcmNotification, sendFcmTopicNotification, paginate } = require('../helpers');
 
 const jwt = require('jsonwebtoken');
 
@@ -23,6 +23,25 @@ async function getBookingsList(req, shopId) {
     }
   }
 
+  if (shopId) {
+    let shop = null;
+    try { shop = await Shop.findOne({ id: shopId }); } catch (_) {}
+    if (!shop) {
+      try { shop = await Shop.findOne({ _id: shopId }); } catch (_) {}
+    }
+
+    const shopConditions = [{ shopId: shopId }];
+    if (shop && shop._id) {
+      shopConditions.push({ shopId: shop._id.toString() });
+    }
+    // Also include open pending requests so provider app sees incoming requests
+    shopConditions.push({ shopId: 'ADMIN_INSTANT', status: 'pending' });
+
+    const providerQuery = { $or: shopConditions };
+    const bookings = await Booking.find(providerQuery).sort({ createdAt: -1 });
+    return bookings.map(b => sanitizeBookingForPrivacy(b));
+  }
+
   const targetCustomerId = req.query.customerId;
   const targetPhone = req.query.customerPhone || (authenticatedUser ? authenticatedUser.phone : null);
   const targetUserId = targetCustomerId || (authenticatedUser ? (authenticatedUser._id ? authenticatedUser._id.toString() : authenticatedUser.id) : null);
@@ -36,17 +55,14 @@ async function getBookingsList(req, shopId) {
     if (authenticatedUser && authenticatedUser.phone) orConditions.push({ customerPhone: authenticatedUser.phone });
 
     const query = orConditions.length > 0 ? { $or: orConditions } : {};
-    if (shopId) query.shopId = shopId;
-
     const bookings = await Booking.find(query).sort({ createdAt: -1 });
-    return bookings.map(b => shopId ? sanitizeBookingForPrivacy(b) : b);
+    return bookings;
   }
 
   const result = await paginate(Booking, req, ['id', 'customerName', 'customerPhone', 'title', 'providerName'], { createdAt: -1 });
   if (Array.isArray(result)) {
-    return result.map(b => shopId ? sanitizeBookingForPrivacy(b) : b);
+    return result;
   } else {
-    result.data = result.data.map(b => shopId ? sanitizeBookingForPrivacy(b) : b);
     return result;
   }
 }
@@ -339,6 +355,18 @@ async function placeBookingOrder(reqBody, userObjectFromToken) {
       },
       'partner'
     ).catch(err => console.error('FCM partner notification error:', err));
+  } else {
+    // Instant/Unassigned booking: broadcast to all active providers so any provider can accept it
+    sendFcmTopicNotification(
+      'providers',
+      'New Instant Booking Request 📦',
+      `New service request for "${title}" (${bookingPricingType === 'inspection_based' ? 'Inspection' : '₹' + parsedAmount}) in ${addrParts[0] || 'your area'}. Tap to view and accept!`,
+      {
+        type: 'booking',
+        bookingId: bookingId,
+        iconColor: 'info'
+      }
+    ).catch(err => console.error('FCM providers topic broadcast error:', err));
   }
 
   return {
@@ -349,7 +377,7 @@ async function placeBookingOrder(reqBody, userObjectFromToken) {
   };
 }
 
-async function updateBookingStatus(id, status, providerName) {
+async function updateBookingStatus(id, status, providerName, providerShopId) {
   const booking = await Booking.findOne({ id });
   if (!booking) {
     throw new Error('Booking not found');
@@ -358,11 +386,19 @@ async function updateBookingStatus(id, status, providerName) {
   const oldStatus = booking.status;
   booking.status = status;
   if (providerName) booking.providerName = providerName;
+  if (providerShopId && (booking.shopId === 'ADMIN_INSTANT' || !booking.shopId || booking.shopId === '')) {
+    booking.shopId = providerShopId;
+  }
   await booking.save();
 
   try {
     const ledger = await PaymentLedger.findOne({ bookingId: id });
     if (ledger) {
+      if (providerShopId && (ledger.shopId === 'ADMIN_INSTANT' || !ledger.shopId)) {
+        ledger.shopId = providerShopId;
+        ledger.providerId = providerShopId;
+        if (providerName) ledger.providerName = providerName;
+      }
       if (status === 'completed' || status === 'closed') {
         if (ledger.paymentMethod === 'cash') {
           ledger.paymentStatus = 'paid';
