@@ -13,6 +13,7 @@ import 'package:quickfix/features/auth/presentation/controllers/auth_providers.d
 import 'package:quickfix/features/booking/presentation/widgets/checkout_offers_sheet.dart';
 
 import 'package:quickfix/features/booking/presentation/widgets/checkout_bill_details.dart';
+import 'package:quickfix/core/network/error_handler.dart';
 
 
 class BookingCheckoutScreen extends ConsumerStatefulWidget {
@@ -97,7 +98,10 @@ class _BookingCheckoutScreenState extends ConsumerState<BookingCheckoutScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to save booking order: ')));
+      final errorMsg = ErrorHandler.handle(e).message;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save booking order: $errorMsg')),
+      );
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
@@ -116,20 +120,25 @@ class _BookingCheckoutScreenState extends ConsumerState<BookingCheckoutScreen> {
     final currentAddress = ref.read(currentAddressProvider.select((state) => state.address));
     final paymentMethod = ref.read(selectedPaymentMethodProvider);
     final shopId = ref.read(cartShopIdProvider);
-    
+    final effectiveAmount = finalAmount > 0 ? finalAmount : ref.read(cartTotalAmountProvider);
 
+    final bookingTitle = cart.isNotEmpty
+        ? (cart.values.length == 1
+            ? cart.values.first.title
+            : '${cart.values.first.title} & ${cart.values.length - 1} more')
+        : 'Service Booking';
 
     final bookingData = {
       'userId': user?['id'] ?? 'guest',
       'customerId': user?['id'] ?? 'guest',
       'customerName': user?['name'] ?? 'John Doe',
       'customerPhone': phone,
-      'customerAddress': currentAddress,
-      'shopId': shopId,
-      'title': ' Service(s) Booked',
+      'customerAddress': currentAddress.isNotEmpty ? currentAddress : 'Current Location',
+      'shopId': shopId ?? 'ADMIN_INSTANT',
+      'title': bookingTitle,
       'slot': selectedSlot,
       'date': DateFormat('yyyy-MM-dd').format(selectedDate),
-      'amount': finalAmount,
+      'amount': effectiveAmount,
       'paymentMethod': paymentMethod,
       'couponCode': appliedCoupon,
       'items': cart.values.map((e) => {'id': e.id, 'quantity': e.quantity, 'price': e.price, 'title': e.title}).toList(),
@@ -639,7 +648,7 @@ class _BookingCheckoutScreenState extends ConsumerState<BookingCheckoutScreen> {
               width: 200,
               height: 56,
               child: ElevatedButton(
-                onPressed: _isProcessing ? null : () => _triggerPaymentGateway(context, finalAmount, isDark),
+                onPressed: _isProcessing ? null : () => _triggerPaymentGateway(context, finalAmount > 0 ? finalAmount : baseAmount, isDark),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryAccent,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

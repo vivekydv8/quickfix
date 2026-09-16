@@ -147,6 +147,9 @@ class CartNotifier extends StateNotifier<Map<String, CartItem>> {
   void clearCart() {
     state = {};
     _persistCart();
+    try {
+      HiveService.saveDataCache('cart_shop_id', null);
+    } catch (_) {}
   }
 }
 

@@ -14,6 +14,7 @@ import 'package:quickfix/features/booking/presentation/controllers/cart_provider
 import 'package:quickfix/core/widgets/error_widgets.dart';
 import 'package:quickfix/core/network/connectivity_provider.dart';
 import 'package:quickfix/core/network/error_handler.dart';
+import 'package:quickfix/core/storage/hive_service.dart';
 
 class ShopDetailsScreen extends ConsumerStatefulWidget {
   final String shopId;
@@ -107,6 +108,7 @@ class _ShopDetailsScreenState extends ConsumerState<ShopDetailsScreen> {
               onPressed: () {
                 ref.read(cartProvider.notifier).clearCart();
                 ref.read(cartShopIdProvider.notifier).state = _shop!.id;
+                HiveService.saveDataCache('cart_shop_id', _shop!.id);
                 ref
                     .read(cartProvider.notifier)
                     .addItem(
@@ -137,6 +139,7 @@ class _ShopDetailsScreenState extends ConsumerState<ShopDetailsScreen> {
       );
     } else {
       ref.read(cartShopIdProvider.notifier).state = _shop!.id;
+      HiveService.saveDataCache('cart_shop_id', _shop!.id);
       ref
           .read(cartProvider.notifier)
           .addItem(
@@ -160,6 +163,7 @@ class _ShopDetailsScreenState extends ConsumerState<ShopDetailsScreen> {
     final cart = ref.read(cartProvider);
     if (cart.isEmpty) {
       ref.read(cartShopIdProvider.notifier).state = null;
+      HiveService.saveDataCache('cart_shop_id', null);
     }
   }
 

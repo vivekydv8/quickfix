@@ -101,7 +101,15 @@ final appSettingsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
 });
 
 // Cart Shop ID Tracker Provider
-final cartShopIdProvider = StateProvider<String?>((ref) => null);
+final cartShopIdProvider = StateProvider<String?>((ref) {
+  try {
+    final cached = HiveService.getDataCache('cart_shop_id');
+    if (cached != null && cached is String && cached.isNotEmpty) {
+      return cached;
+    }
+  } catch (_) {}
+  return null;
+});
 
 // Customer Reviews Provider
 final customerReviewsProvider = FutureProvider<List<Review>>((ref) async {
