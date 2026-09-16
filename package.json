@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "cd quickfix_backend && npm start",
-    "postinstall": "cd quickfix_backend && npm install --production=false"
+    "build": "cd quickfix_backend && npm install --production=false",
+    "postinstall": "cd quickfix_backend && npm install --production=false",
+    "start": "cd quickfix_backend && npm start"
   }
 }

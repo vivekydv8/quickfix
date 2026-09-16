@@ -167,8 +167,8 @@ app.use((err, req, res, next) => {
 });
 
 // Start HTTP Server
-const server = app.listen(PORT, () => {
-  logger.info(`QuickFix Enterprise Backend listening on port ${PORT} [Mode: ${nodeEnv}]`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  logger.info(`QuickFix Enterprise Backend listening on 0.0.0.0:${PORT} [Mode: ${nodeEnv}]`);
 });
 
 // --- GRACEFUL SHUTDOWN HANDLER ---
