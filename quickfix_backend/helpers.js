@@ -176,7 +176,6 @@ async function sendFcmTopicNotification(topic, title, body, data = {}) {
       return false;
     }
 
-    const isPartner = topic === 'providers';
     const channelId = isPartner ? 'booking_alert_channel' : 'high_importance_channel';
     const sound = isPartner ? 'alert_ring' : 'default';
 
