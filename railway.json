@@ -1,10 +1,10 @@
-﻿{
+{
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd quickfix_backend && node server.js",
+    "startCommand": "node -e \"const dir = require('fs').existsSync('./quickfix_backend') ? './quickfix_backend' : '.'; const file = require('path').resolve(dir, 'server.js'); process.chdir(dir); require(file);\"",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }

@@ -1,8 +1,0 @@
-﻿[phases.install]
-cmds = ['npm install', 'cd quickfix_backend && npm install --production=false']
-
-[phases.build]
-cmds = ['cd quickfix_backend && npm run build --if-present']
-
-[start]
-cmd = 'cd quickfix_backend && node server.js'

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd quickfix_backend && npm install --production=false",
-    "postinstall": "cd quickfix_backend && npm install --production=false",
-    "start": "cd quickfix_backend && npm start"
+    "build": "node -e \"if (require('fs').existsSync('./quickfix_backend')) { require('child_process').execSync('npm install --prefix quickfix_backend --production=false', {stdio:'inherit'}); } else { require('child_process').execSync('npm install --production=false', {stdio:'inherit'}); }\"",
+    "postinstall": "node -e \"if (require('fs').existsSync('./quickfix_backend')) { require('child_process').execSync('npm install --prefix quickfix_backend --production=false', {stdio:'inherit'}); } else { require('child_process').execSync('npm install --production=false', {stdio:'inherit'}); }\"",
+    "start": "node -e \"const dir = require('fs').existsSync('./quickfix_backend') ? './quickfix_backend' : '.'; const file = require('path').resolve(dir, 'server.js'); process.chdir(dir); require(file);\""
   }
 }
