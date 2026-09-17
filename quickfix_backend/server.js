@@ -81,6 +81,10 @@ const getHealthStatus = () => {
       status: dbStateMap[dbState] || 'unknown',
       connected: dbState === 1
     },
+    firebase: {
+      initialized: (require('firebase-admin').apps.length > 0),
+      appsCount: require('firebase-admin').apps.length
+    },
     memory: {
       rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)} MB`,
       heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`
