@@ -142,15 +142,42 @@ mongoose.connection.on('reconnected', () => {
 connectWithRetry();
 
 // --- REGISTER MODULAR ROUTES ---
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/wallet', require('./routes/wallet'));
-app.use('/api/provider', require('./routes/provider'));
-app.use('/api/shops', require('./routes/shops'));
-app.use('/api/bookings', require('./routes/bookings'));
-app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/payments', require('./routes/payments'));
-app.use('/api/helpdesk', require('./routes/helpdesk'));
-app.use('/api', require('./routes/settings'));
+const authRoutes = require('./routes/auth');
+const walletRoutes = require('./routes/wallet');
+const providerRoutes = require('./routes/provider');
+const shopsRoutes = require('./routes/shops');
+const bookingsRoutes = require('./routes/bookings');
+const notificationsRoutes = require('./routes/notifications');
+const paymentsRoutes = require('./routes/payments');
+const helpdeskRoutes = require('./routes/helpdesk');
+const settingsRoutes = require('./routes/settings');
+
+app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
+app.use('/api/wallet', walletRoutes);
+app.use('/wallet', walletRoutes);
+
+app.use('/api/provider', providerRoutes);
+app.use('/provider', providerRoutes);
+
+app.use('/api/shops', shopsRoutes);
+app.use('/shops', shopsRoutes);
+
+app.use('/api/bookings', bookingsRoutes);
+app.use('/bookings', bookingsRoutes);
+
+app.use('/api/notifications', notificationsRoutes);
+app.use('/notifications', notificationsRoutes);
+
+app.use('/api/payments', paymentsRoutes);
+app.use('/payments', paymentsRoutes);
+
+app.use('/api/helpdesk', helpdeskRoutes);
+app.use('/helpdesk', helpdeskRoutes);
+
+app.use('/api', settingsRoutes);
+app.use('/', settingsRoutes);
 
 // 404 Route Handler
 app.use((req, res) => {
