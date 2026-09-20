@@ -126,7 +126,8 @@ final GoRouter appRouter = GoRouter(
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
         final id = state.pathParameters['id'] ?? '';
-        return CategoryScreen(categoryId: id);
+        final subcat = state.uri.queryParameters['subcat'];
+        return CategoryScreen(categoryId: id, initialSubcategoryId: subcat);
       },
     ),
     GoRoute(

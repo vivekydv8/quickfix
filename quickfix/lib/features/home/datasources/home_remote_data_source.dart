@@ -3,6 +3,7 @@ import 'package:quickfix/core/network/dio_client.dart';
 import 'package:quickfix/core/network/api_endpoints.dart';
 import 'package:quickfix/core/storage/hive_service.dart';
 import 'package:quickfix/features/home/models/home_models.dart';
+import 'package:quickfix/features/home/config/main_categories_config.dart';
 
 class HomeRemoteDataSource {
   final DioClient _client;
@@ -76,23 +77,36 @@ class HomeRemoteDataSource {
     required String query,
     double? lat,
     double? lng,
+    String? category,
+    String? subcategory,
   }) async {
     final Map<String, dynamic> queryParams = {'q': query};
     if (lat != null && lng != null) {
       queryParams['lat'] = lat;
       queryParams['lng'] = lng;
     }
+    if (category != null && category.trim().isNotEmpty) {
+      queryParams['category'] = category.trim();
+    }
+    if (subcategory != null && subcategory.trim().isNotEmpty) {
+      queryParams['subcategory'] = subcategory.trim();
+    }
+
+    final cacheKey = 'search_shops_${query}_${category ?? ''}_${subcategory ?? ''}';
 
     try {
       final response = await _client.get(
         '/shops/search',
         queryParameters: queryParams,
       );
-      final data = response.data as List;
-      await HiveService.saveDataCache('search_shops_$query', data);
+      final raw = response.data;
+      final List data = raw is List
+          ? raw
+          : (raw is Map && raw['data'] is List ? raw['data'] as List : []);
+      await HiveService.saveDataCache(cacheKey, data);
       return data.map((json) => Shop.fromJson(json as Map<String, dynamic>)).toList();
     } catch (e) {
-      final cached = HiveService.getDataCache('search_shops_$query');
+      final cached = HiveService.getDataCache(cacheKey) ?? HiveService.getDataCache('search_shops_$query');
       if (cached != null && cached is List) {
         return cached.map((json) => Shop.fromJson(json as Map<String, dynamic>)).toList();
       }
@@ -235,15 +249,30 @@ class HomeRemoteDataSource {
     try {
       final response = await _client.get(ApiEndpoints.categorySubcategories(categoryId));
       final data = response.data as List;
-      await HiveService.saveDataCache(cacheKey, data);
-      return data.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
-    } catch (e) {
-      final cached = HiveService.getDataCache(cacheKey);
-      if (cached != null && cached is List) {
-        return cached.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
+      if (data.isNotEmpty) {
+        await HiveService.saveDataCache(cacheKey, data);
+        return data.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
       }
-      rethrow;
+    } catch (_) {}
+
+    final cached = HiveService.getDataCache(cacheKey);
+    if (cached != null && cached is List && cached.isNotEmpty) {
+      return cached.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
     }
+
+    final cat = getMainCategoryById(categoryId);
+    return cat.sampleSubcategories
+        .asMap()
+        .entries
+        .map((e) => Subcategory(
+              id: '${cat.id}_${e.key + 1}',
+              categoryId: cat.id,
+              name: e.value,
+              description: 'Expert verified services for ${e.value.toLowerCase()}',
+              displayOrder: e.key + 1,
+              isActive: true,
+            ))
+        .toList();
   }
 
   Future<List<Subcategory>> getAllSubcategories() async {
@@ -251,15 +280,31 @@ class HomeRemoteDataSource {
     try {
       final response = await _client.get(ApiEndpoints.subcategories);
       final data = response.data as List;
-      await HiveService.saveDataCache(cacheKey, data);
-      return data.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
-    } catch (e) {
-      final cached = HiveService.getDataCache(cacheKey);
-      if (cached != null && cached is List) {
-        return cached.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
+      if (data.isNotEmpty) {
+        await HiveService.saveDataCache(cacheKey, data);
+        return data.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
       }
-      rethrow;
+    } catch (_) {}
+
+    final cached = HiveService.getDataCache(cacheKey);
+    if (cached != null && cached is List && cached.isNotEmpty) {
+      return cached.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
     }
+
+    final List<Subcategory> allDefaults = [];
+    for (final cat in kMainCategories) {
+      for (int i = 0; i < cat.sampleSubcategories.length; i++) {
+        allDefaults.add(Subcategory(
+          id: '${cat.id}_${i + 1}',
+          categoryId: cat.id,
+          name: cat.sampleSubcategories[i],
+          description: 'Expert verified services for ${cat.sampleSubcategories[i].toLowerCase()}',
+          displayOrder: i + 1,
+          isActive: true,
+        ));
+      }
+    }
+    return allDefaults;
   }
 
   Future<List<CatalogService>> getCatalogServices({String? categoryId, String? subcategoryId}) async {

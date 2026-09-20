@@ -48,11 +48,15 @@ class HomeRepositoryImpl implements HomeRepository {
     required String query,
     double? lat,
     double? lng,
+    String? category,
+    String? subcategory,
   }) async {
     return await _remoteDataSource.searchShops(
       query: query,
       lat: lat,
       lng: lng,
+      category: category,
+      subcategory: subcategory,
     );
   }
 

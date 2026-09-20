@@ -329,6 +329,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── 1. Premium Showcase Banner ────────────────────────────────
         if (data.bannerImageUrl.isNotEmpty)
           GestureDetector(
             onTap: () {
@@ -343,22 +344,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+                    width: 1,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
-                      blurRadius: 16,
+                      color: Colors.black.withValues(alpha: isDark ? 0.38 : 0.12),
+                      blurRadius: 18,
                       offset: const Offset(0, 6),
                     ),
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
                   child: Stack(
                     children: [
                       // Banner Image
                       AspectRatio(
-                        aspectRatio: 1.85,
+                        aspectRatio: 1.95,
                         child: Image.network(
                           data.bannerImageUrl,
                           fit: BoxFit.cover,
@@ -367,11 +372,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               Container(
                             color: isDark
                                 ? AppColors.surfaceDark
-                                : Colors.grey[200],
-                            child: const Icon(
-                              Icons.broken_image_rounded,
-                              size: 40,
-                              color: Colors.grey,
+                                : const Color(0xFFF1F5F9),
+                            child: const Center(
+                              child: Icon(
+                                Icons.broken_image_rounded,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
                             ),
                           ),
                         ),
@@ -384,9 +391,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                Colors.black.withValues(alpha: 0.35),
+                                Colors.black.withValues(alpha: 0.18),
                                 Colors.transparent,
-                                Colors.black.withValues(alpha: 0.80),
+                                Colors.black.withValues(alpha: 0.85),
                               ],
                               stops: const [0.0, 0.40, 1.0],
                             ),
@@ -401,7 +408,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
-                              vertical: 5,
+                              vertical: 4.5,
                             ),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
@@ -410,7 +417,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.45),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -421,7 +428,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               children: [
                                 const Icon(
                                   Icons.star_rounded,
-                                  size: 12,
+                                  size: 13,
                                   color: Colors.white,
                                 ),
                                 const SizedBox(width: 4),
@@ -438,9 +445,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             ),
                           ),
                         ),
-                      // Banner Content Text
+                      // Banner Content Text & CTA
                       Positioned(
-                        bottom: 16,
+                        bottom: 14,
                         left: 16,
                         right: 16,
                         child: Row(
@@ -460,11 +467,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                         color: Colors.white,
                                         fontSize: 20,
                                         fontWeight: FontWeight.w800,
-                                        letterSpacing: -0.3,
+                                        letterSpacing: -0.4,
                                         shadows: [
                                           Shadow(
                                             blurRadius: 6.0,
-                                            color: Colors.black.withValues(alpha: 0.6),
+                                            color: Colors.black.withValues(alpha: 0.7),
                                             offset: const Offset(0, 2),
                                           ),
                                         ],
@@ -477,14 +484,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.inter(
-                                        color: Colors.white.withValues(alpha: 0.9),
+                                        color: Colors.white.withValues(alpha: 0.92),
                                         fontSize: 12.5,
                                         fontWeight: FontWeight.w500,
                                         height: 1.25,
                                         shadows: [
                                           Shadow(
                                             blurRadius: 4.0,
-                                            color: Colors.black.withValues(alpha: 0.6),
+                                            color: Colors.black.withValues(alpha: 0.7),
                                             offset: const Offset(0, 1),
                                           ),
                                         ],
@@ -499,14 +506,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 14,
-                                  vertical: 9,
+                                  vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(14),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.25),
+                                      color: Colors.black.withValues(alpha: 0.3),
                                       blurRadius: 8,
                                       offset: const Offset(0, 3),
                                     ),
@@ -543,6 +550,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ),
 
+        // ── 2. Service Items Showcase ─────────────────────────────────
         if (data.serviceItems.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.only(
@@ -556,31 +564,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      if (data.title.isNotEmpty)
-                        Text(
-                          data.title,
-                          style: GoogleFonts.outfit(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.3,
-                            color: isDark ? Colors.white : AppColors.primary,
-                          ),
+                      Container(
+                        width: 4,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                      if (data.subtitle.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          data.subtitle,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondaryLight,
-                          ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (data.title.isNotEmpty)
+                              Text(
+                                data.title,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.3,
+                                  color: isDark ? Colors.white : AppColors.secondary,
+                                ),
+                              ),
+                            if (data.subtitle.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                data.subtitle,
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
@@ -594,22 +617,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         data.seeAllActionValue,
                       );
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: isDark ? 0.15 : 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             'See all',
                             style: GoogleFonts.outfit(
                               color: AppColors.primary,
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: 3),
                           const Icon(
-                            Icons.chevron_right_rounded,
-                            size: 16,
+                            Icons.arrow_forward_rounded,
+                            size: 13,
                             color: AppColors.primary,
                           ),
                         ],
@@ -620,162 +648,201 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ),
           SizedBox(
-            height: 195,
+            height: 232,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               itemCount: data.serviceItems.length,
               itemBuilder: (context, index) {
                 final item = data.serviceItems[index];
+                final priceText = item.startingPrice.isNotEmpty
+                    ? (item.startingPrice.startsWith('₹')
+                        ? item.startingPrice
+                        : '₹${item.startingPrice}')
+                    : '';
+
                 return GestureDetector(
                   onTap: () {
                     AppHaptics.mediumTap();
                     handleCtaAction(context, item.actionType, item.actionValue);
                   },
                   child: Container(
-                    width: 145,
+                    width: 168,
                     margin: const EdgeInsets.symmetric(
                       horizontal: 5,
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: isDark ? AppColors.surfaceDark : Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
                       border: Border.all(
                         color: isDark
                             ? AppColors.borderDark
-                            : const Color(0xFFF1F5F9),
+                            : const Color(0xFFE2E8F0),
                         width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
+                          color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.05),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(9.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Top Image Container with Rating Pill
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(13),
                             child: Stack(
                               children: [
                                 Container(
                                   width: double.infinity,
-                                  height: 95,
+                                  height: 108,
                                   color: isDark
                                       ? const Color(0xFF1E293B)
-                                      : const Color(0xFFF8FAFC),
+                                      : const Color(0xFFF1F5F9),
                                   child: item.imageUrl.isNotEmpty
                                       ? Image.network(
                                           item.imageUrl,
                                           fit: BoxFit.cover,
-                                          cacheWidth: 350,
+                                          cacheWidth: 380,
                                           errorBuilder:
                                               (context, error, stackTrace) =>
-                                                  const Icon(
-                                            Icons.image_not_supported_outlined,
-                                            color: Colors.grey,
-                                            size: 24,
+                                                  const Center(
+                                            child: Icon(
+                                              Icons.home_repair_service_rounded,
+                                              color: Colors.grey,
+                                              size: 28,
+                                            ),
                                           ),
                                         )
-                                      : const Icon(
-                                          Icons.category_outlined,
-                                          color: Colors.grey,
-                                          size: 24,
+                                      : const Center(
+                                          child: Icon(
+                                            Icons.home_repair_service_rounded,
+                                            color: Colors.grey,
+                                            size: 28,
+                                          ),
                                         ),
                                 ),
-                                if (item.startingPrice.isNotEmpty)
-                                  Positioned(
-                                    bottom: 6,
-                                    right: 6,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 7,
-                                        vertical: 3,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.75),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        item.startingPrice,
-                                        style: GoogleFonts.outfit(
-                                          color: Colors.white,
-                                          fontSize: 10.5,
-                                          fontWeight: FontWeight.w700,
+                                // Rating Pill Floating on Top-Left
+                                Positioned(
+                                  top: 6,
+                                  left: 6,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(alpha: 0.65),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.star_rounded,
+                                          size: 12,
+                                          color: Color(0xFFFFB800),
                                         ),
-                                      ),
+                                        const SizedBox(width: 2.5),
+                                        Text(
+                                          item.rating.toStringAsFixed(1),
+                                          style: GoogleFonts.inter(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 8),
+
+                          // Service Title
                           Text(
                             item.title,
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.outfit(
-                              fontSize: 13,
+                              fontSize: 13.5,
                               fontWeight: FontWeight.w700,
+                              height: 1.25,
                               color: isDark
                                   ? Colors.white
-                                  : AppColors.textPrimaryLight,
+                                  : AppColors.secondary,
                             ),
                           ),
-                          const SizedBox(height: 4),
+
+                          const Spacer(),
+
+                          // Bottom Row: Price & Mini "+ ADD / BOOK" CTA Button
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 5,
-                                  vertical: 1.5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFFF8E1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Row(
+                              if (priceText.isNotEmpty)
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
-                                      Icons.star_rounded,
-                                      size: 11,
-                                      color: Color(0xFFFFB300),
-                                    ),
-                                    const SizedBox(width: 2),
                                     Text(
-                                      item.rating.toStringAsFixed(1),
+                                      'Starts at',
                                       style: GoogleFonts.inter(
-                                        fontSize: 10.5,
+                                        fontSize: 9.5,
+                                        color: isDark
+                                            ? Colors.white54
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                    Text(
+                                      priceText,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w800,
-                                        color: const Color(0xFFB78103),
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppColors.secondary,
                                       ),
                                     ),
                                   ],
+                                )
+                              else
+                                const SizedBox.shrink(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
                                 ),
-                              ),
-                              if (item.reviewsCount.isNotEmpty) ...[
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    '(${item.reviewsCount})',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 10,
-                                      color: isDark
-                                          ? AppColors.textSecondaryDark
-                                          : Colors.grey[600],
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(9),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.35),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
                                     ),
+                                  ],
+                                ),
+                                child: Text(
+                                  '+ ADD',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: 0.2,
                                   ),
                                 ),
-                              ],
+                              ),
                             ],
                           ),
                         ],

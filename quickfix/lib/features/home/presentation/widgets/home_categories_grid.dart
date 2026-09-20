@@ -7,6 +7,7 @@ import 'package:quickfix/core/utils/haptics.dart';
 import 'package:quickfix/core/widgets/section_header.dart';
 import 'package:quickfix/features/home/config/main_categories_config.dart';
 import 'package:quickfix/features/home/presentation/controllers/home_providers.dart';
+import 'package:quickfix/features/home/presentation/widgets/premium_category_icon.dart';
 
 class HomeCategoriesGrid extends ConsumerStatefulWidget {
   const HomeCategoriesGrid({super.key});
@@ -75,83 +76,46 @@ class _HomeCategoriesGridState extends ConsumerState<HomeCategoriesGrid> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // ── Icon Box with optional Badge ───────────────
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Container(
-                            width: double.infinity,
-                            height: 62,
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: isSeeAllTile
-                                  ? (isDark ? const Color(0xFF262635) : const Color(0xFFF1F5F9))
-                                  : (isDark
-                                      ? cat!.accentColor.withValues(alpha: 0.15)
-                                      : cat!.backgroundColor),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: isSeeAllTile
-                                    ? (isDark ? AppColors.borderDark : const Color(0xFFCBD5E1))
-                                    : (isDark
-                                        ? AppColors.borderDark
-                                        : cat!.accentColor.withValues(alpha: 0.20)),
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                if (!isDark)
-                                  BoxShadow(
-                                    color: (isSeeAllTile ? Colors.black : cat!.accentColor)
-                                        .withValues(alpha: 0.07),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  ),
-                              ],
+                      if (isSeeAllTile)
+                        Container(
+                          width: 58,
+                          height: 58,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: isDark
+                                  ? [const Color(0xFF334155), const Color(0xFF1E293B)]
+                                  : [const Color(0xFFF1F5F9), const Color(0xFFE2E8F0)],
                             ),
-                            child: Center(
-                              child: isSeeAllTile
-                                  ? Icon(
-                                      Icons.apps_rounded,
-                                      color: isDark ? Colors.white70 : const Color(0xFF475569),
-                                      size: 28,
-                                    )
-                                  : Icon(
-                                      cat!.icon,
-                                      color: cat.accentColor,
-                                      size: 30,
-                                    ),
+                            border: Border.all(
+                              color: isDark ? AppColors.borderDark : const Color(0xFFCBD5E1),
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.grid_view_rounded,
+                              color: isDark ? Colors.white70 : AppColors.primary,
+                              size: 26,
                             ),
                           ),
-                          // Badge (e.g. Popular, Warranty)
-                          if (!isSeeAllTile && cat?.badge != null)
-                            Positioned(
-                              top: -4,
-                              right: -4,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                decoration: BoxDecoration(
-                                  color: cat!.accentColor,
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: cat.accentColor.withValues(alpha: 0.4),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 1),
-                                    ),
-                                  ],
-                                ),
-                                child: Text(
-                                  cat.badge!,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    letterSpacing: 0.2,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
+                        )
+                      else
+                        PremiumCategoryIcon(
+                          category: cat!,
+                          size: 58,
+                          iconSize: 28,
+                          isDark: isDark,
+                        ),
                       const SizedBox(height: 6),
                       // ── Title Label ───────────────────────────────
                       Text(

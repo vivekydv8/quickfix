@@ -155,12 +155,57 @@ async function deleteShop(id) {
   return deleted;
 }
 
+function hasValidCoordinates(lat, lng) {
+  return !isNaN(lat) && !isNaN(lng) && (Math.abs(lat) > 0.01 || Math.abs(lng) > 0.01);
+}
+
+function normalizeTerm(str) {
+  if (!str) return '';
+  return str.toLowerCase().replace(/[_\s&-]+/g, ' ').trim();
+}
+
+function matchCategoryOrTerm(shopCategory, queryTerm) {
+  if (!shopCategory || !queryTerm) return false;
+  const c1 = normalizeTerm(shopCategory);
+  const c2 = normalizeTerm(queryTerm);
+  if (c1.includes(c2) || c2.includes(c1)) return true;
+
+  // Compact alphanumeric comparison (e.g. acservice vs ac_service vs ac)
+  const a1 = c1.replace(/[^a-z0-9]/g, '');
+  const a2 = c2.replace(/[^a-z0-9]/g, '');
+  if (a1.length >= 2 && a2.length >= 2 && (a1.includes(a2) || a2.includes(a1))) return true;
+
+  // Synonyms and root word matches across all 11 main categories
+  const synonyms = [
+    ['carpent', 'carpentry', 'carpenter'],
+    ['clean', 'cleaning'],
+    ['plumb', 'plumbing', 'plumber'],
+    ['elect', 'electrician', 'electrical', 'electric'],
+    ['ac', 'air conditioner', 'ac service', 'ac repair', 'cooling'],
+    ['fridge', 'refrigerator', 'refrigeration'],
+    ['washing', 'washing machine'],
+    ['purifier', 'ro water purifier', 'water purifier', 'ro'],
+    ['mobile', 'smartphone', 'phone repair', 'cell phone'],
+    ['laptop', 'pc', 'computer', 'macbook'],
+    ['tv', 'television', 'led tv', 'smart tv']
+  ];
+
+  for (const group of synonyms) {
+    const m1 = group.some(item => c1.includes(item));
+    const m2 = group.some(item => c2.includes(item));
+    if (m1 && m2) return true;
+  }
+
+  return false;
+}
+
 async function getNearbyShops(userLat, userLng, page, limit) {
   const allShops = await Shop.find({});
+  const hasCoords = hasValidCoordinates(userLat, userLng);
 
   const nearbyShops = allShops
     .map(shop => {
-      const distance = isNaN(userLat) || isNaN(userLng) ? 1.0 : calculateDistance(userLat, userLng, shop.latitude, shop.longitude);
+      const distance = hasCoords ? calculateDistance(userLat, userLng, shop.latitude, shop.longitude) : 1.0;
       const shopObj = shop.toObject();
       shopObj.distanceKm = distance;
       return shopObj;
@@ -172,8 +217,8 @@ async function getNearbyShops(userLat, userLng, page, limit) {
 
       if (!isApproved || !isActive || !isOnline) return false;
 
-      if (!isNaN(userLat) && !isNaN(userLng)) {
-        const radius = parseFloat(shop.serviceRadius) || 5.0;
+      if (hasCoords) {
+        const radius = parseFloat(shop.serviceRadius) || 25.0;
         return shop.distanceKm <= radius;
       }
 
@@ -203,17 +248,17 @@ async function getNearbyShops(userLat, userLng, page, limit) {
   }
 }
 
-async function searchShops(q, userLat, userLng, page, limit) {
-  if (q === undefined) {
-    return [];
-  }
-
+async function searchShops(q, userLat, userLng, page, limit, category, subcategory) {
   const allShops = await Shop.find({});
-  const cleanQuery = q.toLowerCase().trim();
+  const hasCoords = hasValidCoordinates(userLat, userLng);
+
+  const cleanQuery = q ? q.toLowerCase().trim() : '';
+  const cleanCat = category ? category.toLowerCase().trim() : '';
+  const cleanSubcat = subcategory ? subcategory.toLowerCase().trim() : '';
 
   const matchedShops = allShops
     .map(shop => {
-      const distance = isNaN(userLat) || isNaN(userLng) ? 1.0 : calculateDistance(userLat, userLng, shop.latitude, shop.longitude);
+      const distance = hasCoords ? calculateDistance(userLat, userLng, shop.latitude, shop.longitude) : 1.0;
       const shopObj = shop.toObject();
       shopObj.distanceKm = distance;
       return shopObj;
@@ -225,18 +270,38 @@ async function searchShops(q, userLat, userLng, page, limit) {
 
       if (!isApproved || !isActive || !isOnline) return false;
 
-      if (!isNaN(userLat) && !isNaN(userLng)) {
-        const radius = parseFloat(shop.serviceRadius) || 5.0;
+      if (hasCoords) {
+        const radius = parseFloat(shop.serviceRadius) || 25.0;
         if (shop.distanceKm > radius) return false;
       }
 
+      // If category filter is specifically passed
+      if (cleanCat && cleanCat.length > 0 && cleanCat !== 'all') {
+        const catMatched = (shop.categories || []).some(c => matchCategoryOrTerm(c, cleanCat)) ||
+                           (shop.customCategories || []).some(c => matchCategoryOrTerm(c, cleanCat));
+        if (!catMatched) return false;
+      }
+
+      // If subcategory filter is passed
+      if (cleanSubcat && cleanSubcat.length > 0 && cleanSubcat !== 'all') {
+        const subcatMatched = (shop.categories || []).some(c => matchCategoryOrTerm(c, cleanSubcat)) ||
+                              (shop.customCategories || []).some(c => matchCategoryOrTerm(c, cleanSubcat)) ||
+                              (shop.services && shop.services.some(s => 
+                                matchCategoryOrTerm(s.title, cleanSubcat) || 
+                                (s.bulletPoints && s.bulletPoints.some(bp => matchCategoryOrTerm(bp, cleanSubcat)))
+                              ));
+        if (!subcatMatched) return false;
+      }
+
+      // General query match if q is provided
       if (cleanQuery.length === 0) return true;
 
       const nameMatch = shop.name.toLowerCase().includes(cleanQuery);
-      const categoryMatch = shop.categories.some(c => c.toLowerCase().includes(cleanQuery));
+      const categoryMatch = (shop.categories || []).some(c => matchCategoryOrTerm(c, cleanQuery)) ||
+                            (shop.customCategories || []).some(c => matchCategoryOrTerm(c, cleanQuery));
       const serviceMatch = shop.services && shop.services.some(s => 
-        s.title.toLowerCase().includes(cleanQuery) || 
-        (s.bulletPoints && s.bulletPoints.some(bp => bp.toLowerCase().includes(cleanQuery)))
+        matchCategoryOrTerm(s.title, cleanQuery) || 
+        (s.bulletPoints && s.bulletPoints.some(bp => matchCategoryOrTerm(bp, cleanQuery)))
       );
 
       return nameMatch || categoryMatch || serviceMatch;

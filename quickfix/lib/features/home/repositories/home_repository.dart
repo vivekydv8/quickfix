@@ -10,6 +10,8 @@ abstract class HomeRepository {
     required String query,
     double? lat,
     double? lng,
+    String? category,
+    String? subcategory,
   });
   Future<List<PromoBanner>> getBanners();
   Future<List<Promotion>> getPromotions();

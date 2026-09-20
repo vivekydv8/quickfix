@@ -81,7 +81,8 @@ async function deleteCategory(req, res) {
 // --- SUBCATEGORY HANDLERS ---
 async function getSubcategories(req, res) {
   const categoryId = req.params.categoryId || req.query.categoryId;
-  const includeInactive = req.query.includeInactive === 'true' || req.query.all === 'true';
+  const isFromAdmin = (req.originalUrl || req.url || '').includes('/admin') || (req.path || '').includes('/admin');
+  const includeInactive = req.query.includeInactive === 'true' || req.query.all === 'true' || (isFromAdmin && req.query.includeInactive !== 'false');
   try {
     const list = await settingsService.getSubcategories(categoryId, includeInactive);
     res.json(list);

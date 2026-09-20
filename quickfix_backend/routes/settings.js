@@ -20,7 +20,10 @@ router.delete('/categories/:id', requireAdmin, settingsController.deleteCategory
 router.get('/categories/:categoryId/subcategories', publicLimiter, settingsController.getSubcategories);
 router.get('/subcategories', publicLimiter, settingsController.getSubcategories);
 router.get('/admin/subcategories', requireAdmin, settingsController.getSubcategories);
+router.post('/admin/subcategories', requireAdmin, settingsController.createSubcategory);
 router.post('/admin/subcategories/create', requireAdmin, settingsController.createSubcategory);
+router.put('/admin/subcategories/:id', requireAdmin, settingsController.updateSubcategory);
+router.patch('/admin/subcategories/:id', requireAdmin, settingsController.updateSubcategory);
 router.post('/admin/subcategories/update', requireAdmin, settingsController.updateSubcategory);
 router.delete('/admin/subcategories/:id', requireAdmin, settingsController.deleteSubcategory);
 

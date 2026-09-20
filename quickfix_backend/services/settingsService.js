@@ -98,15 +98,19 @@ async function getSubcategories(categoryId, includeInactive = false) {
 
 async function createSubcategory(data) {
   const { id, categoryId, name, description, imageUrl, displayOrder, isActive } = data;
-  const slug = (id || name.toLowerCase().replace(/\s+/g, '_')).trim();
+  const slug = (id || (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '_')).trim();
+  const existing = await Subcategory.findOne(buildIdQuery(slug));
+  if (existing) {
+    return await updateSubcategory(slug, data);
+  }
   const subcat = new Subcategory({
     id: slug,
-    categoryId: categoryId.toLowerCase().trim(),
-    name: name.trim(),
+    categoryId: (categoryId || '').toLowerCase().trim(),
+    name: (name || '').trim(),
     description: description || '',
     imageUrl: imageUrl || '',
-    displayOrder: displayOrder || 0,
-    isActive: isActive !== false
+    displayOrder: parseInt(displayOrder) || 0,
+    isActive: isActive !== false && isActive !== 'false'
   });
   await subcat.save();
   return subcat;
@@ -115,12 +119,12 @@ async function createSubcategory(data) {
 async function updateSubcategory(id, data) {
   const subcat = await Subcategory.findOne(buildIdQuery(id));
   if (!subcat) throw new Error('Subcategory not found');
-  if (data.name !== undefined) subcat.name = data.name;
+  if (data.name !== undefined) subcat.name = data.name.trim();
   if (data.categoryId !== undefined) subcat.categoryId = data.categoryId.toLowerCase().trim();
   if (data.description !== undefined) subcat.description = data.description;
   if (data.imageUrl !== undefined) subcat.imageUrl = data.imageUrl;
-  if (data.displayOrder !== undefined) subcat.displayOrder = data.displayOrder;
-  if (data.isActive !== undefined) subcat.isActive = data.isActive;
+  if (data.displayOrder !== undefined) subcat.displayOrder = parseInt(data.displayOrder) || 0;
+  if (data.isActive !== undefined) subcat.isActive = data.isActive === true || data.isActive === 'true';
   await subcat.save();
   return subcat;
 }

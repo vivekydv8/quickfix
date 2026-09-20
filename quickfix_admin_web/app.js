@@ -703,17 +703,32 @@ async function fetchCategories() {
 // Render categories checkbox inside Register Shop form
 function renderShopCategoriesCheckbox() {
   const container = document.getElementById('shop-form-categories');
-  if (!container) return;
-  container.innerHTML = '';
-  if (categories.length === 0) {
-    container.innerHTML = '<p style="font-size:11px;color:var(--text-muted);">No categories available. Please add categories first.</p>';
-    return;
+  if (container) {
+    container.innerHTML = '';
+    if (categories.length === 0) {
+      container.innerHTML = '<p style="font-size:11px;color:var(--text-muted);">No categories available. Please add categories first.</p>';
+    } else {
+      categories.forEach(c => {
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="checkbox" name="categories" value="${c.id}"> ${c.name}`;
+        container.appendChild(label);
+      });
+    }
   }
-  categories.forEach(c => {
-    const label = document.createElement('label');
-    label.innerHTML = `<input type="checkbox" name="categories" value="${c.id}"> ${c.name}`;
-    container.appendChild(label);
-  });
+
+  // Also populate the shop category filter dropdown
+  const filterSelect = document.getElementById('shop-category-filter');
+  if (filterSelect) {
+    const currentVal = filterSelect.value || 'all';
+    filterSelect.innerHTML = '<option value="all">All Categories</option>';
+    categories.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      if (opt.value === currentVal) opt.selected = true;
+      filterSelect.appendChild(opt);
+    });
+  }
 }
 
 // Update dashboard stats cards dynamically
@@ -778,19 +793,32 @@ function renderShopsList() {
   
   const activeFilterBtn = document.querySelector('.tab-filter.active');
   const filterVal = activeFilterBtn ? activeFilterBtn.getAttribute('data-filter') : 'all';
+  const categoryFilterVal = (document.getElementById('shop-category-filter')?.value || 'all').toLowerCase();
   
   container.innerHTML = '';
   
   const filteredShops = shops.filter(s => {
-    if (filterVal === 'all') return true;
-    if (filterVal === 'approved') return s.verificationStatus === 'approved';
-    if (filterVal === 'pending') return s.verificationStatus === 'pending';
-    if (filterVal === 'suspended') return s.status === 'suspended';
+    if (filterVal === 'approved' && s.verificationStatus !== 'approved') return false;
+    if (filterVal === 'pending' && s.verificationStatus !== 'pending') return false;
+    if (filterVal === 'suspended' && s.status !== 'suspended') return false;
+
+    if (categoryFilterVal !== 'all') {
+      const shopCats = (s.categories || []).map(c => c.toLowerCase());
+      const customCats = (s.customCategories || []).map(c => c.toLowerCase());
+      const allCats = [...shopCats, ...customCats];
+      const matches = allCats.some(c => 
+        c.includes(categoryFilterVal) || categoryFilterVal.includes(c) ||
+        (categoryFilterVal === 'carpenter' && c.includes('carpent')) ||
+        (categoryFilterVal === 'electrician' && c.includes('elect')) ||
+        (categoryFilterVal === 'ac_service' && (c.includes('ac') || c.includes('air')))
+      );
+      if (!matches) return false;
+    }
     return true;
   });
   
   if (filteredShops.length === 0) {
-    container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:20px;">No matching shops found.</p>';
+    container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:20px;">No matching shops found for the selected category/status.</p>';
     return;
   }
   
@@ -815,6 +843,12 @@ function renderShopsList() {
         <h4 style="display:flex; align-items:center; gap:8px;">${esc(s.name)} <span style="font-size:11px;color:var(--text-muted);">(${esc(s.shopDisplayId || 'No ID')})</span> ${verifyBadge} ${suspendBadge}</h4>
         <p>Owner: ${esc(s.ownerName)} &bull; Phone: ${esc(s.phone)} &bull; Email: ${esc(s.email || 'N/A')}</p>
         <p style="font-size:11px;color:var(--primary-solid);margin-top:4px;">Coords: ${esc(s.latitude)}, ${esc(s.longitude)} &bull; Radius: ${esc(s.serviceRadius)}km &bull; Visiting: &#8377;${esc(s.visitingCharges)}</p>
+        <p style="font-size:11px;color:var(--text-primary);margin-top:3px;font-weight:600;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+          <span>Categories:</span>
+          ${(s.categories && s.categories.length > 0) 
+            ? s.categories.map(c => `<span class="badge" style="background:rgba(99,102,241,0.12);color:var(--primary-solid);font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700;">${esc(c)}</span>`).join('') 
+            : '<span style="color:var(--text-muted);font-weight:400;">None assigned</span>'}
+        </p>
         <p style="font-size:11px;color:var(--text-muted);margin-top:2px;">GST: ${maskKyc(s.gst, 4, 'GST')} &bull; PAN: ${maskKyc(s.pan, 4, 'PAN')} &bull; Aadhaar: ${maskKyc(s.aadhaar, 4, 'Aadhaar')}</p>
         <p style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Bank Acc: ${maskKyc(s.bankAccountNumber, 4, 'Bank Account')} &bull; IFSC: ${maskKyc(s.ifscCode, 4, 'IFSC')} &bull; UPI: ${maskKyc(s.upiId, 4, 'UPI ID')}</p>
         <p style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Owner Phone: ${esc(s.ownerPhone || 'N/A')} &bull; Owner Email: ${esc(s.ownerEmail || 'N/A')}</p>
@@ -1551,7 +1585,9 @@ function editShop(id) {
   
   // Set categories checkboxes
   document.querySelectorAll('input[name="categories"]').forEach(cb => {
-    cb.checked = (shop.categories || []).includes(cb.value);
+    const val = cb.value.toLowerCase();
+    const shopCats = (shop.categories || []).map(c => c.toLowerCase());
+    cb.checked = shopCats.includes(val) || shopCats.some(sc => sc.includes(val) || val.includes(sc));
   });
   
   document.getElementById('btn-submit-shop').innerHTML = '<i class="fa-solid fa-save"></i> Save Shop Details';
@@ -2578,6 +2614,8 @@ function switchCatalogSubTab(tab) {
 }
 
 // Load Subcategories for Admin
+let _cachedAdminSubcategories = [];
+
 async function loadAdminSubcategories() {
   const container = document.getElementById('subcategories-list');
   if (!container) return;
@@ -2586,32 +2624,60 @@ async function loadAdminSubcategories() {
   const filterSelect = document.getElementById('subcat-filter-category');
   const catFilter = filterSelect ? filterSelect.value : '';
 
+  if (catFilter) {
+    const parentSelect = document.getElementById('subcat-parent');
+    if (parentSelect && !document.getElementById('edit-subcat-id')?.value) {
+      parentSelect.value = catFilter;
+    }
+  }
+
   try {
-    const url = catFilter ? `${API_URL}/categories/${catFilter}/subcategories` : `${API_URL}/subcategories`;
+    const url = `${API_URL}/admin/subcategories${catFilter ? `?categoryId=${catFilter}` : ''}`;
     const res = await fetch(url);
     const data = await res.json();
     const list = Array.isArray(data) ? data : (data.data || []);
+    _cachedAdminSubcategories = list;
+
+    const countBadge = document.getElementById('subcat-count-badge');
+    if (countBadge) countBadge.textContent = list.length;
 
     container.innerHTML = '';
     if (list.length === 0) {
-      container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px;">No subcategories found.</p>';
+      container.innerHTML = `<div style="text-align:center; padding:30px 20px; color:var(--text-muted);">
+        <i class="fa-solid fa-layer-group" style="font-size:28px; margin-bottom:8px; opacity:0.5;"></i>
+        <p>No subcategories found${catFilter ? ` for ${catFilter}` : ''}.</p>
+        <p style="font-size:12px;">Create one using the form on the left.</p>
+      </div>`;
       return;
     }
 
     list.forEach(item => {
       const card = document.createElement('div');
-      card.style = 'display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--bg-card-hover); border:1px solid var(--border-color); border-radius:10px;';
+      card.style = 'display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--bg-card-hover); border:1px solid var(--border-color); border-radius:10px; gap:12px;';
+      const isActive = item.isActive !== false;
       card.innerHTML = `
-        <div>
-          <div style="font-weight:600; font-size:14px; display:flex; align-items:center; gap:8px;">
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:600; font-size:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <span>${item.name}</span>
             <span class="badge" style="background:var(--primary-solid); color:#fff; font-size:10px;">${item.categoryId}</span>
+            <span class="badge ${isActive ? 'badge-success' : 'badge-secondary'}" style="font-size:10px; cursor:pointer;" onclick="toggleAdminSubcategoryActive('${item.id}', ${!isActive})" title="Click to toggle status">
+              ${isActive ? 'Active' : 'Inactive'}
+            </span>
             <span style="font-size:11px; color:var(--text-muted);">#${item.id}</span>
+            <span style="font-size:11px; color:var(--text-muted);">• Order: ${item.displayOrder || 1}</span>
           </div>
-          ${item.description ? `<p style="margin:4px 0 0; font-size:12px; color:var(--text-secondary);">${item.description}</p>` : ''}
+          ${item.description ? `<p style="margin:4px 0 0; font-size:12px; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.description}</p>` : ''}
         </div>
-        <div>
-          <button class="btn btn-icon btn-delete" onclick="deleteAdminSubcategory('${item.id}')" title="Delete Subcategory"><i class="fa-solid fa-trash-can"></i></button>
+        <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+          <button class="btn btn-icon btn-sm btn-edit" onclick="editAdminSubcategory('${item.id}')" title="Edit Subcategory">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button class="btn btn-icon btn-sm ${isActive ? 'btn-warning' : 'btn-success'}" onclick="toggleAdminSubcategoryActive('${item.id}', ${!isActive})" title="${isActive ? 'Deactivate Subcategory' : 'Activate Subcategory'}">
+            <i class="fa-solid ${isActive ? 'fa-eye-slash' : 'fa-eye'}"></i>
+          </button>
+          <button class="btn btn-icon btn-sm btn-delete" onclick="deleteAdminSubcategory('${item.id}')" title="Delete Subcategory">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
         </div>
       `;
       container.appendChild(card);
@@ -2622,33 +2688,116 @@ async function loadAdminSubcategories() {
   }
 }
 
-// Handle Subcategory Form Submit
+// Edit Subcategory in Form
+function editAdminSubcategory(id) {
+  const item = _cachedAdminSubcategories.find(s => s.id === id);
+  if (!item) return;
+
+  const editIdInput = document.getElementById('edit-subcat-id');
+  const parentSelect = document.getElementById('subcat-parent') || document.getElementById('subcat-category');
+  const idInput = document.getElementById('subcat-id');
+  const nameInput = document.getElementById('subcat-name');
+  const descInput = document.getElementById('subcat-desc');
+  const orderInput = document.getElementById('subcat-order');
+  const saveBtn = document.getElementById('btn-save-subcat');
+  const cancelBtn = document.getElementById('btn-cancel-edit-subcat');
+
+  if (editIdInput) editIdInput.value = item.id;
+  if (parentSelect) parentSelect.value = item.categoryId;
+  if (idInput) {
+    idInput.value = item.id;
+    idInput.readOnly = true;
+    idInput.style.opacity = '0.7';
+  }
+  if (nameInput) nameInput.value = item.name;
+  if (descInput) descInput.value = item.description || '';
+  if (orderInput) orderInput.value = item.displayOrder || 1;
+
+  if (saveBtn) saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Update Subcategory';
+  if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+
+  const formCard = document.querySelector('#catalog-section-subcategories .form-card');
+  if (formCard) formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Cancel Subcategory Edit
+function cancelSubcategoryEdit() {
+  const editIdInput = document.getElementById('edit-subcat-id');
+  const idInput = document.getElementById('subcat-id');
+  const form = document.getElementById('subcategory-form');
+  const saveBtn = document.getElementById('btn-save-subcat');
+  const cancelBtn = document.getElementById('btn-cancel-edit-subcat');
+
+  if (editIdInput) editIdInput.value = '';
+  if (idInput) {
+    idInput.readOnly = false;
+    idInput.style.opacity = '1';
+  }
+  if (form) form.reset();
+  if (saveBtn) saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Subcategory';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+
+  const catFilter = document.getElementById('subcat-filter-category')?.value;
+  const parentSelect = document.getElementById('subcat-parent');
+  if (catFilter && parentSelect) parentSelect.value = catFilter;
+}
+
+// Toggle Subcategory Active/Inactive
+async function toggleAdminSubcategoryActive(id, newStatus) {
+  try {
+    const res = await fetch(`${API_URL}/admin/subcategories/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isActive: newStatus })
+    });
+    const json = await res.json();
+    if (res.ok && json.success !== false) {
+      showToast(`Subcategory ${newStatus ? 'activated' : 'deactivated'}`, 'success');
+      loadAdminSubcategories();
+      populateSubcategoryDropdown();
+    } else {
+      showToast(json.error || 'Failed to update subcategory status', 'error');
+    }
+  } catch (e) {
+    showToast('Network error updating subcategory status', 'error');
+    logError('toggleAdminSubcategoryActive', e);
+  }
+}
+
+// Handle Subcategory Form Submit (Create or Update)
 async function handleSubcategorySubmit(event) {
   if (event) event.preventDefault();
-  const categoryId = document.getElementById('subcat-category').value;
+  const parentElem = document.getElementById('subcat-parent') || document.getElementById('subcat-category');
+  const categoryId = parentElem ? parentElem.value : '';
   const id = document.getElementById('subcat-id').value.trim();
   const name = document.getElementById('subcat-name').value.trim();
   const description = document.getElementById('subcat-desc').value.trim();
   const displayOrder = parseInt(document.getElementById('subcat-order').value, 10) || 1;
+  const editId = (document.getElementById('edit-subcat-id') ? document.getElementById('edit-subcat-id').value : '').trim();
 
   if (!categoryId || !id || !name) {
     showToast('Please fill all required fields', 'warning');
     return;
   }
 
+  const isEditing = Boolean(editId);
+  const targetUrl = isEditing ? `${API_URL}/admin/subcategories/${editId}` : `${API_URL}/admin/subcategories/create`;
+  const method = isEditing ? 'PUT' : 'POST';
+
   try {
-    const res = await fetch(`${API_URL}/admin/subcategories`, {
-      method: 'POST',
+    const res = await fetch(targetUrl, {
+      method: method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, categoryId, name, description, displayOrder, isActive: true })
     });
     const json = await res.json();
     if (res.ok && (json.success !== false)) {
-      showToast('Subcategory saved successfully!', 'success');
-      document.getElementById('subcategory-form').reset();
+      showToast(`Subcategory ${isEditing ? 'updated' : 'created'} successfully!`, 'success');
+      cancelSubcategoryEdit();
       loadAdminSubcategories();
+      populateSubcategoryDropdown();
     } else {
-      showToast(json.error || 'Failed to save subcategory', 'error');
+      showToast(json.error || `Failed to ${isEditing ? 'update' : 'save'} subcategory`, 'error');
     }
   } catch (e) {
     showToast('Network error saving subcategory', 'error');
@@ -2664,7 +2813,11 @@ async function deleteAdminSubcategory(id) {
       const data = await res.json();
       if (res.ok && data.success !== false) {
         showToast('Subcategory deleted', 'success');
+        if (document.getElementById('edit-subcat-id')?.value === id) {
+          cancelSubcategoryEdit();
+        }
         loadAdminSubcategories();
+        populateSubcategoryDropdown();
       } else {
         showToast(data.error || 'Failed to delete subcategory', 'error');
       }

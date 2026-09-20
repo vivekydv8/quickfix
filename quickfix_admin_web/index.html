@@ -848,11 +848,14 @@
           <div class="card list-card">
             <div class="card-header">
               <h2><i class="fa-solid fa-list"></i> Registered Shops</h2>
-              <div class="shop-filter-tabs">
+              <div class="shop-filter-tabs" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <button class="tab-filter active" data-filter="all">All</button>
                 <button class="tab-filter" data-filter="approved">Approved</button>
                 <button class="tab-filter" data-filter="pending">Pending</button>
                 <button class="tab-filter" data-filter="suspended">Suspended</button>
+                <select id="shop-category-filter" class="form-control" style="padding:4px 10px; font-size:12px; height:32px; width:auto; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary); cursor:pointer;" onchange="renderShopsList()">
+                  <option value="all">All Categories</option>
+                </select>
               </div>
             </div>
             <div class="shops-list-container" id="shops-list"></div>
@@ -924,6 +927,7 @@
               <h2><i class="fa-solid fa-layer-group"></i> Manage Subcategory</h2>
             </div>
             <form id="subcategory-form" onsubmit="handleSubcategorySubmit(event)">
+              <input type="hidden" id="edit-subcat-id" value="">
               <div class="form-group">
                 <label for="subcat-parent">Parent Category</label>
                 <select id="subcat-parent" required class="form-control" style="width:100%; padding:8px; border-radius:var(--r-sm); border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main);">
@@ -956,13 +960,19 @@
                 <label for="subcat-order">Display Order</label>
                 <input type="number" id="subcat-order" value="1" min="1">
               </div>
-              <button type="submit" class="btn btn-primary" id="btn-save-subcat"><i class="fa-solid fa-check"></i> Save Subcategory</button>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button type="submit" class="btn btn-primary" id="btn-save-subcat"><i class="fa-solid fa-check"></i> Save Subcategory</button>
+                <button type="button" class="btn btn-secondary" id="btn-cancel-edit-subcat" style="display:none;" onclick="cancelSubcategoryEdit()"><i class="fa-solid fa-xmark"></i> Cancel Edit</button>
+              </div>
             </form>
           </div>
 
           <div class="card list-card">
-            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
-              <h2><i class="fa-solid fa-list-check"></i> Subcategories List</h2>
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h2><i class="fa-solid fa-list-check"></i> Subcategories</h2>
+                <span id="subcat-count-badge" class="badge badge-primary" style="font-size:11px;">0</span>
+              </div>
               <select id="subcat-filter-category" onchange="loadAdminSubcategories()" style="padding:6px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-main);">
                 <option value="">All Categories</option>
                 <option value="electrician">Electrician</option>

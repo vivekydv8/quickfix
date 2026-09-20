@@ -72,16 +72,12 @@ async function getNearby(req, res) {
 }
 
 async function search(req, res) {
-  const { q, lat, lng, page, limit } = req.query;
+  const { q, lat, lng, page, limit, category, subcategory } = req.query;
   const userLat = parseFloat(lat);
   const userLng = parseFloat(lng);
   try {
-    const result = await shopService.searchShops(q, userLat, userLng, page, limit);
-    if (result.success) {
-      res.json(result);
-    } else {
-      res.json(result);
-    }
+    const result = await shopService.searchShops(q, userLat, userLng, page, limit, category, subcategory);
+    res.json(result);
   } catch (e) {
     console.error('Failed to search shops:', e);
     res.status(500).json({ error: 'Search process failed' });
