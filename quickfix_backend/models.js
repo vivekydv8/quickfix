@@ -16,7 +16,7 @@ function readDb() {
       fs.writeFileSync(dbPath, JSON.stringify({}));
     }
     const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-    const collections = ['users', 'shops', 'bookings', 'categories', 'reviews', 'professionals', 'banners', 'offers', 'notifications', 'demands', 'promotions', 'specialcards', 'cmssections', 'customsections', 'paymentledgers', 'settlements', 'paymentauditlogs', 'adminusers', 'helpdesktickets', 'ticketmessages', 'knowledgebases', 'helpdeskanalytics'];
+    const collections = ['users', 'shops', 'bookings', 'categories', 'subcategories', 'catalogservices', 'reviews', 'professionals', 'banners', 'offers', 'notifications', 'demands', 'promotions', 'specialcards', 'cmssections', 'customsections', 'paymentledgers', 'settlements', 'paymentauditlogs', 'adminusers', 'helpdesktickets', 'ticketmessages', 'knowledgebases', 'helpdeskanalytics'];
     let changed = false;
     for (const col of collections) {
       if (!data[col]) {
@@ -54,6 +54,13 @@ function matchesQuery(doc, query) {
       continue;
     }
 
+    if (key === '$and') {
+      if (!Array.isArray(val)) return false;
+      const allMatch = val.every(subQuery => matchesQuery(doc, subQuery));
+      if (!allMatch) return false;
+      continue;
+    }
+
     const docVal = doc[key];
 
     if (val && typeof val === 'object' && !Array.isArray(val)) {
@@ -65,11 +72,25 @@ function matchesQuery(doc, query) {
       const operators = Object.keys(val);
       for (const op of operators) {
         if (op === '$ne') {
-          if (docVal === val['$ne']) return false;
+          if (Array.isArray(docVal)) {
+            if (docVal.includes(val['$ne'])) return false;
+          } else {
+            if (docVal === val['$ne']) return false;
+          }
         } else if (op === '$in') {
-          if (!Array.isArray(val['$in']) || !val['$in'].includes(docVal)) return false;
+          if (!Array.isArray(val['$in'])) return false;
+          if (Array.isArray(docVal)) {
+            if (!docVal.some(item => val['$in'].includes(item))) return false;
+          } else {
+            if (!val['$in'].includes(docVal)) return false;
+          }
         } else if (op === '$nin') {
-          if (Array.isArray(val['$nin']) && val['$nin'].includes(docVal)) return false;
+          if (!Array.isArray(val['$nin'])) return false;
+          if (Array.isArray(docVal)) {
+            if (docVal.some(item => val['$nin'].includes(item))) return false;
+          } else {
+            if (val['$nin'].includes(docVal)) return false;
+          }
         } else if (op === '$gt') {
           if (!(docVal > val['$gt'])) return false;
         } else if (op === '$gte') {
@@ -78,10 +99,15 @@ function matchesQuery(doc, query) {
           if (!(docVal < val['$lt'])) return false;
         } else if (op === '$lte') {
           if (!(docVal <= val['$lte'])) return false;
+        } else if (op === '$exists') {
+          const exists = docVal !== undefined && docVal !== null;
+          if (exists !== Boolean(val['$exists'])) return false;
         } else if (op === '$regex') {
           const opts = val['$options'] || '';
           const regex = new RegExp(val['$regex'], opts);
           if (!regex.test(String(docVal))) return false;
+        } else if (op === '$options') {
+          continue;
         } else {
           if (JSON.stringify(docVal) !== JSON.stringify(val)) return false;
         }
@@ -215,6 +241,43 @@ const modelDefaults = {
     categories: ["Cleaning"]
   }
 };
+
+function applyUpdate(doc, updateData) {
+  const updated = { ...doc };
+  if (!updateData) return updated;
+
+  for (const [k, v] of Object.entries(updateData)) {
+    if (k === '$set' && typeof v === 'object' && v !== null) {
+      Object.assign(updated, v);
+    } else if (k === '$addToSet' && typeof v === 'object' && v !== null) {
+      for (const [subKey, subVal] of Object.entries(v)) {
+        if (!Array.isArray(updated[subKey])) {
+          updated[subKey] = [];
+        }
+        if (typeof subVal === 'object' && subVal !== null && subVal.$each && Array.isArray(subVal.$each)) {
+          for (const item of subVal.$each) {
+            if (!updated[subKey].includes(item)) updated[subKey].push(item);
+          }
+        } else {
+          if (!updated[subKey].includes(subVal)) updated[subKey].push(subVal);
+        }
+      }
+    } else if (k === '$push' && typeof v === 'object' && v !== null) {
+      for (const [subKey, subVal] of Object.entries(v)) {
+        if (!Array.isArray(updated[subKey])) updated[subKey] = [];
+        updated[subKey].push(subVal);
+      }
+    } else if (k === '$unset' && typeof v === 'object' && v !== null) {
+      for (const subKey of Object.keys(v)) {
+        delete updated[subKey];
+      }
+    } else if (!k.startsWith('$')) {
+      updated[k] = v;
+    }
+  }
+  updated.updatedAt = new Date().toISOString();
+  return updated;
+}
 
 // Generates a mock model class
 function createMockModel(modelName, collectionName) {
@@ -410,11 +473,7 @@ function createMockModel(modelName, collectionName) {
       const idx = list.findIndex(doc => matchesQuery(doc, query));
       if (idx === -1) return null;
 
-      const updated = {
-        ...list[idx],
-        ...updateData,
-        updatedAt: new Date().toISOString()
-      };
+      const updated = applyUpdate(list[idx], updateData);
       list[idx] = updated;
       db[collectionName] = list;
       writeDb(db);
@@ -438,6 +497,68 @@ function createMockModel(modelName, collectionName) {
 
     static async findByIdAndDelete(id) {
       return this.findOneAndDelete({ _id: id });
+    }
+
+    static async deleteOne(query) {
+      const db = readDb();
+      const list = db[collectionName] || [];
+      const idx = list.findIndex(doc => matchesQuery(doc, query));
+      if (idx === -1) {
+        return { acknowledged: true, deletedCount: 0 };
+      }
+      list.splice(idx, 1);
+      db[collectionName] = list;
+      writeDb(db);
+      return { acknowledged: true, deletedCount: 1 };
+    }
+
+    static async deleteMany(query) {
+      const db = readDb();
+      const list = db[collectionName] || [];
+      const remaining = [];
+      let deletedCount = 0;
+      for (const doc of list) {
+        if (matchesQuery(doc, query)) {
+          deletedCount++;
+        } else {
+          remaining.push(doc);
+        }
+      }
+      db[collectionName] = remaining;
+      writeDb(db);
+      return { acknowledged: true, deletedCount };
+    }
+
+    static async updateOne(query, updateData) {
+      const db = readDb();
+      const list = db[collectionName] || [];
+      const idx = list.findIndex(doc => matchesQuery(doc, query));
+      if (idx === -1) {
+        return { acknowledged: true, matchedCount: 0, modifiedCount: 0 };
+      }
+      list[idx] = applyUpdate(list[idx], updateData);
+      db[collectionName] = list;
+      writeDb(db);
+      return { acknowledged: true, matchedCount: 1, modifiedCount: 1 };
+    }
+
+    static async updateMany(query, updateData) {
+      const db = readDb();
+      const list = db[collectionName] || [];
+      let matchedCount = 0;
+      let modifiedCount = 0;
+      for (let i = 0; i < list.length; i++) {
+        if (matchesQuery(list[i], query)) {
+          matchedCount++;
+          list[i] = applyUpdate(list[i], updateData);
+          modifiedCount++;
+        }
+      }
+      if (modifiedCount > 0) {
+        db[collectionName] = list;
+        writeDb(db);
+      }
+      return { acknowledged: true, matchedCount, modifiedCount };
     }
   }
 
@@ -643,6 +764,40 @@ const CategorySchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true }
 });
 
+// 5a. Subcategory Schema (Dynamic Admin-Managed Subcategories)
+const SubcategorySchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, index: true },
+  categoryId: { type: String, required: true, index: true },
+  name: { type: String, required: true },
+  description: { type: String, default: '' },
+  imageUrl: { type: String, default: '' },
+  displayOrder: { type: Number, default: 0 },
+  isActive: { type: Boolean, default: true }
+}, { timestamps: true });
+
+// 5b. Catalog Service Schema (Admin-Managed Service Offerings under Subcategory)
+const CatalogServiceSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, index: true },
+  categoryId: { type: String, required: true, index: true },
+  subcategoryId: { type: String, required: true, index: true },
+  title: { type: String, required: true },
+  description: { type: String, default: '' },
+  imageUrl: { type: String, default: '' },
+  price: { type: Number, required: true, default: 0 },
+  originalPrice: { type: Number, default: 0 },
+  pricingType: { type: String, enum: ['fixed', 'starting', 'inspection', 'range'], default: 'fixed' },
+  minPrice: { type: Number, default: 0 },
+  maxPrice: { type: Number, default: 0 },
+  visitingCharges: { type: Number, default: 0 },
+  isFreeInspection: { type: Boolean, default: false },
+  durationText: { type: String, default: '1 hr' },
+  bulletPoints: { type: [String], default: [] },
+  rating: { type: Number, default: 4.8 },
+  reviewsCount: { type: Number, default: 0 },
+  displayOrder: { type: Number, default: 0 },
+  isActive: { type: Boolean, default: true }
+}, { timestamps: true });
+
 // 6. Review Schema (Customer Feedbacks feed)
 const ReviewSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, index: true },
@@ -720,7 +875,11 @@ const NotificationSchema = new mongoose.Schema({
   shopId: { type: String, default: '' },
   type: { type: String, default: 'general' },
   bookingId: { type: String, default: '' },
-  deepLink: { type: String, default: '' }
+  deepLink: { type: String, default: '' },
+  isRead: { type: Boolean, default: false },
+  readAt: { type: Date, default: null },
+  readBy: { type: [String], default: [] },
+  deletedBy: { type: [String], default: [] }
 }, { timestamps: true });
 
 // 11. Customer Demand Schema
@@ -998,6 +1157,8 @@ const MongooseModels = {
   Shop: mongoose.model('Shop', ShopSchema),
   Booking: mongoose.model('Booking', BookingSchema),
   Category: mongoose.model('Category', CategorySchema),
+  Subcategory: mongoose.model('Subcategory', SubcategorySchema),
+  CatalogService: mongoose.model('CatalogService', CatalogServiceSchema),
   Review: mongoose.model('Review', ReviewSchema),
   Professional: mongoose.model('Professional', ProfessionalSchema),
   Banner: mongoose.model('Banner', BannerSchema),
@@ -1025,6 +1186,8 @@ const LocalModels = {
   Shop: createMockModel('Shop', 'shops'),
   Booking: createMockModel('Booking', 'bookings'),
   Category: createMockModel('Category', 'categories'),
+  Subcategory: createMockModel('Subcategory', 'subcategories'),
+  CatalogService: createMockModel('CatalogService', 'catalogservices'),
   Review: createMockModel('Review', 'reviews'),
   Professional: createMockModel('Professional', 'professionals'),
   Banner: createMockModel('Banner', 'banners'),
@@ -1059,7 +1222,7 @@ function makeModelProxy(modelName) {
   const staticMethods = [
     'find', 'findOne', 'findById', 'countDocuments', 'create', 'insertMany',
     'findOneAndUpdate', 'findByIdAndUpdate', 'findOneAndDelete', 'findByIdAndDelete',
-    'aggregate'
+    'aggregate', 'deleteOne', 'deleteMany', 'updateOne', 'updateMany'
   ];
 
   for (const method of staticMethods) {
@@ -1081,6 +1244,8 @@ module.exports = {
   Shop: makeModelProxy('Shop'),
   Booking: makeModelProxy('Booking'),
   Category: makeModelProxy('Category'),
+  Subcategory: makeModelProxy('Subcategory'),
+  CatalogService: makeModelProxy('CatalogService'),
   Review: makeModelProxy('Review'),
   Professional: makeModelProxy('Professional'),
   Banner: makeModelProxy('Banner'),

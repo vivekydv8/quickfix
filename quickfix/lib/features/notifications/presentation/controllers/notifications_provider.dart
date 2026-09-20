@@ -1,182 +1,211 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
 import 'package:quickfix/core/storage/hive_service.dart';
 import 'package:quickfix/core/network/network_providers.dart';
+import 'package:quickfix/core/services/notification_service.dart';
+import 'package:quickfix/features/notifications/domain/models/notification_item.dart';
 import 'package:quickfix/features/notifications/datasources/notifications_remote_data_source.dart';
 import 'package:quickfix/features/notifications/repositories/notifications_repository.dart';
 import 'package:quickfix/features/notifications/repositories/notifications_repository_impl.dart';
 
-final notificationsRemoteDataSourceProvider = Provider<NotificationsRemoteDataSource>((ref) {
+final notificationsRemoteDataSourceProvider =
+    Provider<NotificationsRemoteDataSource>((ref) {
   final client = ref.watch(dioClientProvider);
   return NotificationsRemoteDataSource(client);
 });
 
-final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) {
+final notificationsRepositoryProvider =
+    Provider<NotificationsRepository>((ref) {
   final remote = ref.watch(notificationsRemoteDataSourceProvider);
   return NotificationsRepositoryImpl(remote);
 });
 
-// Global Notifications Providers
-final notificationsProvider = StreamProvider<List<Map<String, dynamic>>>((
-  ref,
-) async* {
-  final box = Hive.box('local_notifications');
-
-  List<Map<String, dynamic>> getList() {
-    final list = box.values
-        .map((e) => Map<String, dynamic>.from(e as Map))
-        .toList();
-    list.sort((a, b) {
-      final timeA =
-          DateTime.tryParse(a['time'] ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0);
-      final timeB =
-          DateTime.tryParse(b['time'] ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0);
-      return timeB.compareTo(timeA);
-    });
-    return list;
+class NotificationsNotifier extends AsyncNotifier<List<NotificationItem>> {
+  @override
+  Future<List<NotificationItem>> build() async {
+    return _fetchNotifications();
   }
 
-  yield getList();
-
-  await for (final _ in box.watch()) {
-    yield getList();
+  Future<List<NotificationItem>> _fetchNotifications() async {
+    try {
+      final repo = ref.read(notificationsRepositoryProvider);
+      final remoteList = await repo.getNotifications();
+      return _filterValid(remoteList);
+    } catch (e) {
+      // Fallback to local cache if available
+      final cached = HiveService.getDataCache('user_notifications');
+      if (cached != null && cached is List) {
+        final list = cached
+            .map((e) =>
+                NotificationItem.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+        return _filterValid(list);
+      }
+      rethrow;
+    }
   }
-});
 
-final syncNotificationsProvider = FutureProvider<void>((ref) async {
-  try {
-    final repository = ref.read(notificationsRepositoryProvider);
-    final data = await repository.getNotifications();
-    final box = Hive.box('local_notifications');
-
-    final deletedIds = HiveService.getDeletedNotificationIds();
-    final readIds = HiveService.getReadNotificationIds();
-
-    for (final item in data) {
-      final map = Map<String, dynamic>.from(item as Map);
-      final id = map['id']?.toString() ?? '';
-      final title = (map['title'] ?? '').toString();
-      final type = (map['type'] ?? 'general').toString();
-
-      // Block "QuickFix Update" & system update notifications
-      if (title.toLowerCase().contains('quickfix update') ||
-          title.toLowerCase().contains('update available') ||
+  List<NotificationItem> _filterValid(List<NotificationItem> list) {
+    return list.where((item) {
+      final title = item.title.toLowerCase();
+      final type = item.type.toLowerCase();
+      // Filter out system app updates
+      if (title.contains('quickfix update') ||
+          title.contains('update available') ||
           type == 'system_update' ||
           type == 'app_update') {
-        continue;
+        return false;
       }
-
-      if (id.isNotEmpty && !deletedIds.contains(id) && !box.containsKey(id)) {
-        final localItem = {
-          'id': id,
-          'title': map['title'] ?? '',
-          'body': map['body'] ?? '',
-          'time':
-              map['createdAt'] ??
-              map['time'] ??
-              DateTime.now().toIso8601String(),
-          'isRead': readIds.contains(id),
-          'type': map['type'] ?? 'general',
-          'bookingId': map['bookingId'] ?? '',
-          'orderId': map['orderId'] ?? '',
-          'deepLink': map['deepLink'] ?? '',
-          'iconColor': map['iconColor'] ?? 'primary',
-        };
-        await box.put(id, localItem);
-      }
-    }
-  } catch (_) {
-    // Fail silently
-  }
-});
-
-class ReadNotificationsNotifier extends StateNotifier<Set<String>> {
-  ReadNotificationsNotifier()
-    : super(HiveService.getReadNotificationIds().toSet()) {
-    _syncWithLocalNotifications();
+      return true;
+    }).toList();
   }
 
-  void _syncWithLocalNotifications() {
-    try {
-      final box = Hive.box('local_notifications');
-      final readIds = box.values
-          .map((e) => Map<String, dynamic>.from(e as Map))
-          .where((item) => item['isRead'] == true)
-          .map((item) => item['id']?.toString() ?? '')
-          .where((id) => id.isNotEmpty)
-          .toSet();
-      state = readIds;
-    } catch (_) {}
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _fetchNotifications());
   }
 
   Future<void> markAsRead(String id) async {
-    state = {...state, id};
-    HiveService.markNotificationAsRead(id);
+    final previousList = state.value;
+    if (previousList == null) return;
 
-    try {
-      final box = Hive.box('local_notifications');
-      final item = box.get(id);
-      if (item != null) {
-        final updated = Map<String, dynamic>.from(item as Map);
-        updated['isRead'] = true;
-        await box.put(id, updated);
-      }
-    } catch (_) {}
-  }
-
-  Future<void> markAllAsRead(List<String> ids) async {
-    state = {...state, ...ids};
-    for (final id in ids) {
-      HiveService.markNotificationAsRead(id);
+    final targetIndex = previousList.indexWhere((n) => n.id == id);
+    if (targetIndex == -1 || previousList[targetIndex].isRead) {
+      return; // Already read or not found
     }
 
-    try {
-      final box = Hive.box('local_notifications');
-      for (final id in ids) {
-        final item = box.get(id);
-        if (item != null) {
-          final updated = Map<String, dynamic>.from(item as Map);
-          updated['isRead'] = true;
-          await box.put(id, updated);
-        }
+    // Optimistic update
+    final updatedList = previousList.map((n) {
+      if (n.id == id) {
+        return n.copyWith(isRead: true);
       }
-    } catch (_) {}
+      return n;
+    }).toList();
+
+    state = AsyncValue.data(updatedList);
+    await HiveService.saveDataCache(
+      'user_notifications',
+      updatedList.map((e) => e.toJson()).toList(),
+    );
+
+    try {
+      final repo = ref.read(notificationsRepositoryProvider);
+      await repo.markAsRead(id);
+    } catch (e) {
+      // Rollback on failure
+      state = AsyncValue.data(previousList);
+      await HiveService.saveDataCache(
+        'user_notifications',
+        previousList.map((e) => e.toJson()).toList(),
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> markAllAsRead() async {
+    final previousList = state.value;
+    if (previousList == null || previousList.isEmpty) return;
+
+    final hasUnread = previousList.any((n) => !n.isRead);
+    if (!hasUnread) return;
+
+    // Optimistic update
+    final updatedList =
+        previousList.map((n) => n.copyWith(isRead: true)).toList();
+    state = AsyncValue.data(updatedList);
+    await HiveService.saveDataCache(
+      'user_notifications',
+      updatedList.map((e) => e.toJson()).toList(),
+    );
+
+    try {
+      final repo = ref.read(notificationsRepositoryProvider);
+      await repo.markAllAsRead();
+    } catch (e) {
+      // Rollback on failure
+      state = AsyncValue.data(previousList);
+      await HiveService.saveDataCache(
+        'user_notifications',
+        previousList.map((e) => e.toJson()).toList(),
+      );
+      rethrow;
+    }
   }
 
   Future<void> deleteNotification(String id) async {
-    state = state.where((item) => item != id).toSet();
+    final previousList = state.value;
+    if (previousList == null) return;
+
+    // Cancel OS tray notification
+    unawaited(NotificationService.cancelNotification(id));
+
+    // Optimistic removal
+    final updatedList = previousList.where((n) => n.id != id).toList();
+    state = AsyncValue.data(updatedList);
+    await HiveService.saveDataCache(
+      'user_notifications',
+      updatedList.map((e) => e.toJson()).toList(),
+    );
+
     try {
-      await HiveService.markNotificationAsDeleted(id);
-      final box = Hive.box('local_notifications');
-      await box.delete(id);
-    } catch (_) {}
+      final repo = ref.read(notificationsRepositoryProvider);
+      await repo.deleteNotification(id);
+    } catch (e) {
+      // Rollback on failure
+      state = AsyncValue.data(previousList);
+      await HiveService.saveDataCache(
+        'user_notifications',
+        previousList.map((e) => e.toJson()).toList(),
+      );
+      rethrow;
+    }
   }
 
   Future<void> clearAll() async {
-    state = {};
+    final previousList = state.value;
+    if (previousList == null || previousList.isEmpty) return;
+
+    // Cancel all OS tray notifications
+    unawaited(NotificationService.cancelAllNotifications());
+
+    // Optimistic clear
+    state = const AsyncValue.data([]);
+    await HiveService.saveDataCache('user_notifications', []);
+
     try {
-      final box = Hive.box('local_notifications');
-      final ids = box.keys.map((e) => e.toString()).toList();
-      await HiveService.markMultipleNotificationsAsDeleted(ids);
-      await box.clear();
-    } catch (_) {}
+      final repo = ref.read(notificationsRepositoryProvider);
+      await repo.deleteAllNotifications();
+    } catch (e) {
+      // Rollback on failure
+      state = AsyncValue.data(previousList);
+      await HiveService.saveDataCache(
+        'user_notifications',
+        previousList.map((e) => e.toJson()).toList(),
+      );
+      rethrow;
+    }
+  }
+
+  void resetState() {
+    state = const AsyncValue.data([]);
+    HiveService.saveDataCache('user_notifications', []);
   }
 }
 
-final readNotificationsProvider =
-    StateNotifierProvider<ReadNotificationsNotifier, Set<String>>((ref) {
-      return ReadNotificationsNotifier();
-    });
+final notificationsProvider =
+    AsyncNotifierProvider<NotificationsNotifier, List<NotificationItem>>(() {
+  return NotificationsNotifier();
+});
 
 final unreadNotificationsCountProvider = Provider<int>((ref) {
   final notificationsAsync = ref.watch(notificationsProvider);
   return notificationsAsync.when(
-    data: (list) {
-      return list.where((item) => item['isRead'] != true).length;
-    },
+    data: (list) => list.where((item) => !item.isRead).length,
     loading: () => 0,
     error: (_, __) => 0,
   );
+});
+
+final syncNotificationsProvider = FutureProvider<void>((ref) async {
+  await ref.read(notificationsProvider.notifier).refresh();
 });

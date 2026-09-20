@@ -626,3 +626,173 @@ class CustomSection {
     );
   }
 }
+
+class Subcategory {
+  final String id;
+  final String categoryId;
+  final String name;
+  final String description;
+  final String imageUrl;
+  final int displayOrder;
+  final bool isActive;
+
+  const Subcategory({
+    required this.id,
+    required this.categoryId,
+    required this.name,
+    this.description = '',
+    this.imageUrl = '',
+    this.displayOrder = 0,
+    this.isActive = true,
+  });
+
+  factory Subcategory.fromJson(Map<String, dynamic> json) {
+    return Subcategory(
+      id: json['id']?.toString() ?? '',
+      categoryId: json['categoryId']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      imageUrl: json['imageUrl']?.toString() ?? '',
+      displayOrder: int.tryParse(json['displayOrder']?.toString() ?? '0') ?? 0,
+      isActive: json['isActive'] != false,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'categoryId': categoryId,
+    'name': name,
+    'description': description,
+    'imageUrl': imageUrl,
+    'displayOrder': displayOrder,
+    'isActive': isActive,
+  };
+}
+
+class CatalogService {
+  final String id;
+  final String categoryId;
+  final String subcategoryId;
+  final String title;
+  final String description;
+  final String imageUrl;
+  final double price;
+  final double originalPrice;
+  final String pricingType; // 'fixed', 'starting', 'inspection', 'range'
+  final double minPrice;
+  final double maxPrice;
+  final double visitingCharges;
+  final bool isFreeInspection;
+  final String durationText;
+  final List<String> bulletPoints;
+  final double rating;
+  final int reviewsCount;
+  final bool isActive;
+
+  const CatalogService({
+    required this.id,
+    required this.categoryId,
+    required this.subcategoryId,
+    required this.title,
+    this.description = '',
+    this.imageUrl = '',
+    required this.price,
+    this.originalPrice = 0.0,
+    this.pricingType = 'fixed',
+    this.minPrice = 0.0,
+    this.maxPrice = 0.0,
+    this.visitingCharges = 0.0,
+    this.isFreeInspection = false,
+    this.durationText = '30-45 mins',
+    this.bulletPoints = const [],
+    this.rating = 4.8,
+    this.reviewsCount = 42,
+    this.isActive = true,
+  });
+
+  factory CatalogService.fromJson(Map<String, dynamic> json) {
+    return CatalogService(
+      id: json['id']?.toString() ?? '',
+      categoryId: json['categoryId']?.toString() ?? '',
+      subcategoryId: json['subcategoryId']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      imageUrl: json['imageUrl']?.toString() ?? '',
+      price: double.tryParse(json['price']?.toString() ?? '0.0') ?? 0.0,
+      originalPrice:
+          double.tryParse(json['originalPrice']?.toString() ?? '0.0') ?? 0.0,
+      pricingType: json['pricingType']?.toString() ?? 'fixed',
+      minPrice: double.tryParse(json['minPrice']?.toString() ?? '0.0') ?? 0.0,
+      maxPrice: double.tryParse(json['maxPrice']?.toString() ?? '0.0') ?? 0.0,
+      visitingCharges:
+          double.tryParse(json['visitingCharges']?.toString() ?? '0.0') ?? 0.0,
+      isFreeInspection: json['isFreeInspection'] == true,
+      durationText: json['durationText']?.toString() ?? '30-45 mins',
+      bulletPoints: (json['bulletPoints'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      rating: double.tryParse(json['rating']?.toString() ?? '4.8') ?? 4.8,
+      reviewsCount:
+          int.tryParse(json['reviewsCount']?.toString() ?? '42') ?? 42,
+      isActive: json['isActive'] != false,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'categoryId': categoryId,
+    'subcategoryId': subcategoryId,
+    'title': title,
+    'description': description,
+    'imageUrl': imageUrl,
+    'price': price,
+    'originalPrice': originalPrice,
+    'pricingType': pricingType,
+    'minPrice': minPrice,
+    'maxPrice': maxPrice,
+    'visitingCharges': visitingCharges,
+    'isFreeInspection': isFreeInspection,
+    'durationText': durationText,
+    'bulletPoints': bulletPoints,
+    'rating': rating,
+    'reviewsCount': reviewsCount,
+    'isActive': isActive,
+  };
+
+  /// Returns user-friendly pricing label (e.g. "₹199", "Starts at ₹199", "Quote on Inspection")
+  String get formattedPrice {
+    if (pricingType == 'inspection') {
+      return isFreeInspection ? 'Free Inspection' : '₹${visitingCharges.toStringAsFixed(0)} Visiting Fee';
+    } else if (pricingType == 'starting') {
+      return 'Starts at ₹${price.toStringAsFixed(0)}';
+    } else if (pricingType == 'range' && minPrice > 0 && maxPrice > 0) {
+      return '₹${minPrice.toStringAsFixed(0)} - ₹${maxPrice.toStringAsFixed(0)}';
+    } else {
+      return '₹${price.toStringAsFixed(0)}';
+    }
+  }
+
+  /// Convert to ShopService for existing booking flow compatibility
+  ShopService toShopService() {
+    return ShopService(
+      id: id,
+      title: title,
+      price: price,
+      originalPrice: originalPrice,
+      rating: rating,
+      reviewsCount: reviewsCount,
+      durationText: durationText,
+      bulletPoints: bulletPoints,
+      imageUrl: imageUrl,
+      pricingType: pricingType,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      visitingCharges: visitingCharges,
+      isFreeInspection: isFreeInspection,
+      isEnabled: isActive,
+      isAvailable: true,
+    );
+  }
+}
+

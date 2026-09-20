@@ -33,6 +33,9 @@ void main() {
       ProviderScope(
         overrides: [
           currentAddressProvider.overrideWith((ref) => FakeLocationNotifier()),
+          categoriesProvider.overrideWith((ref) => Future.value([])),
+          bannersProvider.overrideWith((ref) => Future.value([])),
+          homepageLayoutProvider.overrideWith((ref) => Future.value([])),
         ],
         child: const QuickFixApp(),
       ),

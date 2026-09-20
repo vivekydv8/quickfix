@@ -9,7 +9,9 @@ import 'package:quickfix/core/theme/app_colors.dart';
 import 'package:quickfix/core/theme/app_text_styles.dart';
 import 'package:quickfix/core/storage/hive_service.dart';
 import 'package:quickfix/core/utils/haptics.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:quickfix/features/home/models/home_models.dart';
+import 'package:quickfix/features/home/config/main_categories_config.dart';
 import 'package:quickfix/features/home/presentation/controllers/home_providers.dart';
 
 // Dynamic search configuration
@@ -36,6 +38,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   String _selectedFilter = 'All'; // 'All', 'Services', 'Shops'
   List<String> _recentSearches = [];
   List<Shop> _searchResults = [];
+  List<MainCategory> _matchingCategories = [];
+  List<CatalogService> _catalogServices = [];
   bool _isSearching = false;
 
   final List<String> _popularSuggestions = [
@@ -54,7 +58,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     // Auto-request focus or start voice listening on entrance
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.startVoice) {
-        _showVoiceSearchDialog(context, ref.read(isDarkModeProvider));
+        _showVoiceSearchDialog(ref.read(isDarkModeProvider));
       } else {
         _focusNode.requestFocus();
       }
@@ -73,9 +77,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   Future<void> _performSearch(String query) async {
-    if (query.trim().isEmpty) {
+    final cleanQuery = query.trim().toLowerCase();
+    if (cleanQuery.isEmpty) {
       setState(() {
         _searchResults = [];
+        _matchingCategories = [];
+        _catalogServices = [];
         _isSearching = false;
       });
       return;
@@ -83,6 +90,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     setState(() {
       _isSearching = true;
     });
+
+    final matchedCats = kMainCategories.where((c) =>
+      c.displayName.toLowerCase().contains(cleanQuery) ||
+      c.subtitle.toLowerCase().contains(cleanQuery) ||
+      c.id.toLowerCase().contains(cleanQuery)
+    ).toList();
+
     try {
       final activeLocation = ref.read(currentAddressProvider);
       final repo = ref.read(homeRepositoryProvider);
@@ -91,9 +105,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         lat: activeLocation.latitude,
         lng: activeLocation.longitude,
       );
+
+      List<CatalogService> catServices = [];
+      try {
+        catServices = await repo.searchCatalogServices(query);
+      } catch (_) {}
+
       if (mounted) {
         setState(() {
           _searchResults = results;
+          _matchingCategories = matchedCats;
+          _catalogServices = catServices;
           _isSearching = false;
         });
       }
@@ -101,11 +123,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       if (mounted) {
         setState(() {
           _searchResults = [];
+          _matchingCategories = matchedCats;
+          _catalogServices = [];
           _isSearching = false;
         });
       }
     }
   }
+
 
   void _onSearchChanged(String query) {
     setState(() {
@@ -211,7 +236,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   ),
                 const SizedBox(width: 8),
                 GestureDetector(
-                  onTap: () => _showVoiceSearchDialog(context, isDark),
+                  onTap: () => _showVoiceSearchDialog(isDark),
                   child: const Icon(Icons.mic, color: AppColors.primary),
                 ),
               ],
@@ -362,7 +387,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       );
     }
 
-    if (results.isEmpty) {
+    final hasAnyResults = results.isNotEmpty ||
+        _matchingCategories.isNotEmpty ||
+        _catalogServices.isNotEmpty;
+
+    if (!hasAnyResults) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
@@ -398,7 +427,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack);
     }
 
+    final showServices = _selectedFilter == 'All' || _selectedFilter == 'Services';
+    final showShops = _selectedFilter == 'All' || _selectedFilter == 'Shops';
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Horizontal Filter Pill Row
         Container(
@@ -459,104 +492,229 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         ),
 
-        // Results List
+        // Scrollable Results
         Expanded(
-          child: ListView.builder(
+          child: ListView(
             padding: const EdgeInsets.all(16),
-            itemCount: results.length,
-            itemBuilder: (context, index) {
-              final item = results[index];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.surfaceDark : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.borderDark
-                        : AppColors.borderLight,
+            children: [
+              // 1. Matched Categories
+              if (showServices && _matchingCategories.isNotEmpty) ...[
+                Text(
+                  'Service Categories',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppColors.secondary,
                   ),
                 ),
-                child: ListTile(
-                  onTap: () {
-                    // Cache query to history first
-                    HiveService.addSearchQuery(_query);
-                    AppHaptics.mediumTap();
-                    context.push('/shop/${item.id}', extra: item);
-                  },
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 48,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _matchingCategories.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (context, i) {
+                      final cat = _matchingCategories[i];
+                      return InkWell(
+                        onTap: () {
+                          AppHaptics.lightTap();
+                          context.push('/category/${cat.id}');
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppColors.surfaceDark : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: cat.accentColor.withValues(alpha: 0.35),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(cat.icon, size: 20, color: cat.accentColor),
+                              const SizedBox(width: 8),
+                              Text(
+                                cat.displayName,
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? Colors.white : AppColors.secondary,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 18),
+              ],
+
+              // 2. Matched Catalog Services
+              if (showServices && _catalogServices.isNotEmpty) ...[
+                Text(
+                  'Catalog Services',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppColors.secondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ..._catalogServices.map((srv) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.catPlumbing.withValues(
-                        alpha: isDark ? 0.15 : 1,
+                      color: isDark ? AppColors.surfaceDark : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
                       ),
-                      shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.storefront,
-                      color: AppColors.catPlumbingIcon,
-                    ),
-                  ),
-                  title: Text(
-                    item.name,
-                    style: AppTextStyles.headingSmall(isDark),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.categories.join(', '),
-                        style: AppTextStyles.bodySmall(isDark),
+                    child: ListTile(
+                      onTap: () {
+                        AppHaptics.lightTap();
+                        context.push('/category/${srv.categoryId}');
+                      },
+                      title: Text(
+                        srv.title,
+                        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
+                      subtitle: Text(
+                        '${srv.categoryId.replaceAll('_', ' ').toUpperCase()} • ${srv.durationText}',
+                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.success.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  item.rating.toString(),
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.success,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 2),
-                                const Icon(
-                                  Icons.star,
-                                  color: AppColors.success,
-                                  size: 8,
-                                ),
-                              ],
+                          Text(
+                            srv.formattedPrice,
+                            style: const TextStyle(
+                              color: Color(0xFF059669),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
                             ),
                           ),
                           const SizedBox(width: 8),
+                          const Icon(Icons.chevron_right_rounded, size: 18, color: Colors.grey),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 18),
+              ],
+
+              // 3. Matched Shops
+              if (showShops && results.isNotEmpty) ...[
+                Text(
+                  'Nearby Verified Centers & Shops (${results.length})',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppColors.secondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                for (final item in results)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.surfaceDark : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.borderDark
+                            : AppColors.borderLight,
+                      ),
+                    ),
+                    child: ListTile(
+                      onTap: () {
+                        // Cache query to history first
+                        HiveService.addSearchQuery(_query);
+                        AppHaptics.mediumTap();
+                        context.push('/shop/${item.id}', extra: item);
+                      },
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.catPlumbing.withValues(
+                            alpha: isDark ? 0.15 : 1,
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.storefront,
+                          color: AppColors.catPlumbingIcon,
+                        ),
+                      ),
+                      title: Text(
+                        item.name,
+                        style: AppTextStyles.headingSmall(isDark),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            "${item.estimatedTimeDisplay} • ${item.distanceKm.toStringAsFixed(1)} km",
-                            style: AppTextStyles.bodySmall(isDark).copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? Colors.white70
-                                  : AppColors.textPrimaryLight,
-                            ),
+                            item.categories.join(', '),
+                            style: AppTextStyles.bodySmall(isDark),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.success.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      item.rating.toString(),
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: AppColors.success,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    const Icon(
+                                      Icons.star,
+                                      color: AppColors.success,
+                                      size: 8,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "${item.estimatedTimeDisplay} • ${item.distanceKm.toStringAsFixed(1)} km",
+                                style: AppTextStyles.bodySmall(isDark).copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : AppColors.textPrimaryLight,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                      trailing: const Icon(Icons.chevron_right, size: 20),
+                    ),
                   ),
-                  trailing: const Icon(Icons.chevron_right, size: 20),
-                ),
-              ).animate(delay: (50 * index).ms).fadeIn().slideY(begin: 0.1, end: 0);
-            },
+              ],
+            ],
           ),
         ),
       ],
@@ -564,14 +722,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   // Real Working Voice search listening dialog
-  Future<void> _showVoiceSearchDialog(BuildContext context, bool isDark) async {
+  Future<void> _showVoiceSearchDialog(bool isDark) async {
     AppHaptics.heavyTap();
+    final messenger = ScaffoldMessenger.of(context);
 
     // Check & request microphone permission
     final micPermission = await Permission.microphone.request();
     if (micPermission.isDenied || micPermission.isPermanentlyDenied) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Microphone permission is required for voice search.'),
             backgroundColor: AppColors.error,
@@ -605,7 +764,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     if (!_speechInitialized) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Voice recognition is not available or supported on this device.'),
             backgroundColor: AppColors.error,
@@ -652,7 +811,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       // Speech listen fallback
     }
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     showDialog(
       context: context,

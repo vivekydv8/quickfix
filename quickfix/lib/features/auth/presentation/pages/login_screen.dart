@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,35 +26,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   bool _isOtpSent = false;
   bool _isLoading = false;
-  int _timerCount = 30;
+  int _timerCount = 60;
+  Timer? _resendTimer;
   String? _verificationId;
+  int? _resendToken;
 
   @override
   void dispose() {
+    _resendTimer?.cancel();
     _phoneController.dispose();
     _otpController.dispose();
     super.dispose();
   }
 
   void _startTimer() {
-    Future.doWhile(() async {
-      await Future.delayed(const Duration(seconds: 1));
-      if (!mounted) return false;
-      setState(() {
-        if (_timerCount > 0) {
+    _resendTimer?.cancel();
+    setState(() {
+      _timerCount = 60;
+    });
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_timerCount > 0) {
+        setState(() {
           _timerCount--;
-        }
-      });
-      return _timerCount > 0;
+        });
+      } else {
+        timer.cancel();
+      }
     });
   }
 
-  void _sendOtp() async {
+  void _sendOtp({bool isResend = false}) async {
     final phone = _phoneController.text.trim();
     if (!InputSanitizer.isValidPhone(phone)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter a valid 10-digit phone number'),
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -65,40 +77,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      // Initialize default verification ID for mock fallback
-      _verificationId = 'mock-verification-id-$phone';
-
-      // First, trigger our backend OTP logging for reference/fallback if configured
-      try {
-        final repository = ref.read(authRepositoryProvider);
-        await repository.requestOtp(phone);
-      } catch (e) {
-        debugPrint('Backend OTP notification failed: $e');
-      }
-
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: '+91$phone',
+        forceResendingToken: isResend ? _resendToken : null,
         verificationCompleted: (PhoneAuthCredential credential) async {
           if (!mounted) return;
-          _otpController.text = credential.smsCode ?? '';
-          if (_otpController.text.isNotEmpty) {
-            _verifyOtpWithCredential(credential);
+          // Android instant auto-verification
+          if (credential.smsCode != null && credential.smsCode!.isNotEmpty) {
+            _otpController.text = credential.smsCode!;
           }
+          await _verifyOtpWithCredential(credential);
         },
         verificationFailed: (FirebaseAuthException e) {
           if (!mounted) return;
-          
-          debugPrint('Firebase phone verification failed: ${e.message}. Using development mock OTP fallback.');
           setState(() {
-            _verificationId = 'mock-verification-id-$phone';
             _isLoading = false;
-            _isOtpSent = true;
-            _timerCount = 30;
           });
-          _startTimer();
+          String errorMessage = e.message ?? 'Phone verification failed (${e.code}).';
+          if (e.code == 'invalid-phone-number') {
+            errorMessage = 'The entered phone number is invalid.';
+          } else if (e.code == 'too-many-requests') {
+            errorMessage = 'Too many requests. Please wait a moment before trying again.';
+          } else if (e.code == 'quota-exceeded') {
+            errorMessage = 'SMS quota exceeded for today. Please try again later.';
+          } else if (e.code == 'network-request-failed') {
+            errorMessage = 'Network connection failed. Please check your internet connection.';
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Verification OTP code sent to +91 $phone via SMS.'),
+              content: Text(errorMessage),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
             ),
           );
         },
@@ -106,14 +115,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           if (!mounted) return;
           setState(() {
             _verificationId = verificationId;
+            _resendToken = resendToken;
             _isLoading = false;
             _isOtpSent = true;
-            _timerCount = 30;
           });
           _startTimer();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Verification OTP code sent to +91 $phone via SMS.'),
+              content: Text('OTP sent to +91 $phone via SMS.'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
             ),
           );
         },
@@ -124,19 +135,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         },
         timeout: const Duration(seconds: 60),
       );
-    } catch (e) {
+    } catch (e, s) {
       if (mounted) {
-        debugPrint('Firebase phone verification initiation failed: $e. Using dev mock OTP fallback.');
         setState(() {
-          _verificationId = 'mock-verification-id-$phone';
           _isLoading = false;
-          _isOtpSent = true;
-          _timerCount = 30;
         });
-        _startTimer();
+        final mapped = ErrorHandler.handle(e, s);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Verification OTP code sent to +91 $phone via SMS.'),
+            content: Text(mapped.message),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -147,7 +156,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final otp = _otpController.text.trim();
     if (!InputSanitizer.isValidOtp(otp)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid 6-digit OTP code')),
+        const SnackBar(
+          content: Text('Please enter a valid 6-digit OTP code'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (_verificationId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Verification session expired. Please request a new OTP.'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -158,44 +180,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      _verificationId ??= 'mock-verification-id-${_phoneController.text.trim()}';
-
-      // Check if demo OTP '123456' OR mock verification session is used
-      if (otp == '123456' || _verificationId!.startsWith('mock-verification-id-')) {
-        final phone = _phoneController.text.trim();
-        final mockToken = 'mock-firebase-token-for-$phone';
-        
-        await ref
-            .read(authProvider.notifier)
-            .login(phone, otp, firebaseToken: mockToken);
-
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-          AppHaptics.successNotification();
-          final shouldCompletePermissionFlow =
-              !HiveService.isInitialPermissionFlowComplete();
-          context.go(shouldCompletePermissionFlow ? '/location' : '/home');
-        }
-        return;
-      }
-
       final credential = PhoneAuthProvider.credential(
         verificationId: _verificationId!,
         smsCode: otp,
       );
 
       await _verifyOtpWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        String message = e.message ?? 'Verification failed (${e.code})';
+        if (e.code == 'invalid-verification-code') {
+          message = 'The OTP entered is incorrect. Please check and try again.';
+        } else if (e.code == 'session-expired') {
+          message = 'SMS code has expired. Please request a new OTP.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e, s) {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
         final mapped = ErrorHandler.handle(e, s);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(mapped.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(mapped.message),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -208,13 +230,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
       final idToken = await userCredential.user?.getIdToken();
 
-      if (idToken == null) {
+      if (idToken == null || idToken.isEmpty) {
         throw Exception("Firebase authentication token retrieval failed.");
       }
 
       await ref
           .read(authProvider.notifier)
-          .login(phone, credential.smsCode ?? '', firebaseToken: idToken);
+          .login(phone, credential.smsCode ?? _otpController.text.trim(), firebaseToken: idToken);
 
       if (mounted) {
         setState(() {
@@ -225,15 +247,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             !HiveService.isInitialPermissionFlowComplete();
         context.go(shouldCompletePermissionFlow ? '/location' : '/home');
       }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        String message = e.message ?? 'Verification failed (${e.code})';
+        if (e.code == 'invalid-verification-code') {
+          message = 'The OTP entered is incorrect. Please check and try again.';
+        } else if (e.code == 'session-expired') {
+          message = 'SMS code has expired. Please request a new OTP.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e, s) {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
         final mapped = ErrorHandler.handle(e, s);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(mapped.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(mapped.message),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -452,12 +497,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ).animate().fadeIn().slideY(begin: 0.1, end: 0),
                         const SizedBox(height: 8),
-                        Text(
-                          'Code sent to +91 ${_phoneController.text}',
-                          style: GoogleFonts.inter(
-                            fontSize: 15,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Code sent to +91 ${_phoneController.text}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 15,
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _isLoading
+                                  ? null
+                                  : () {
+                                      _resendTimer?.cancel();
+                                      setState(() {
+                                        _isOtpSent = false;
+                                        _otpController.clear();
+                                      });
+                                    },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                'Change',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryAccent,
+                                ),
+                              ),
+                            ),
+                          ],
                         ).animate().fadeIn(delay: 100.ms),
 
                         const SizedBox(height: 32),
@@ -511,14 +586,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                             if (_timerCount == 0)
                               TextButton(
-                                onPressed: () {
-                                  AppHaptics.lightTap();
-                                  setState(() {
-                                    _timerCount = 30;
-                                    _otpController.clear();
-                                  });
-                                  _startTimer();
-                                },
+                                onPressed: _isLoading
+                                    ? null
+                                    : () {
+                                        AppHaptics.lightTap();
+                                        _otpController.clear();
+                                        _sendOtp(isResend: true);
+                                      },
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,

@@ -65,8 +65,8 @@ class CategoryGridShimmer extends StatelessWidget {
       ),
       itemCount: 8,
       itemBuilder: (context, index) {
-        return Column(
-          children: const [
+        return const Column(
+          children: [
             ShimmerLoading(width: 56, height: 56, borderRadius: 16),
             SizedBox(height: 8),
             ShimmerLoading(width: 48, height: 10, borderRadius: 4),
@@ -98,9 +98,9 @@ class ServiceCardShimmer extends StatelessWidget {
         ),
       ),
       padding: const EdgeInsets.all(12),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           ShimmerLoading(width: double.infinity, height: 100, borderRadius: 12),
           SizedBox(height: 12),
           ShimmerLoading(width: 100, height: 14, borderRadius: 4),

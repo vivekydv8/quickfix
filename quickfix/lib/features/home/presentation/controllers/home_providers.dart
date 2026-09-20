@@ -35,6 +35,52 @@ final categoriesProvider = FutureProvider<List<ServiceCategory>>((ref) async {
   return normalized;
 });
 
+// Subcategories Family Provider (fetched by main categoryId)
+final subcategoriesFamily =
+    FutureProvider.family<List<Subcategory>, String>((ref, categoryId) async {
+  final repository = ref.watch(homeRepositoryProvider);
+  return repository.getSubcategories(categoryId);
+});
+
+// All Subcategories Provider
+final allSubcategoriesProvider = FutureProvider<List<Subcategory>>((ref) async {
+  final repository = ref.watch(homeRepositoryProvider);
+  return repository.getAllSubcategories();
+});
+
+// Subcategory Services Family Provider (fetched by subcategoryId)
+final subcategoryServicesFamily =
+    FutureProvider.family<List<CatalogService>, String>((ref, subcategoryId) async {
+  final repository = ref.watch(homeRepositoryProvider);
+  return repository.getCatalogServices(subcategoryId: subcategoryId);
+});
+
+// Category Services Family Provider (all services in a main category)
+final categoryServicesFamily =
+    FutureProvider.family<List<CatalogService>, String>((ref, categoryId) async {
+  final repository = ref.watch(homeRepositoryProvider);
+  return repository.getCatalogServices(categoryId: categoryId);
+});
+
+// All Catalog Services Provider
+final allCatalogServicesProvider =
+    FutureProvider<List<CatalogService>>((ref) async {
+  final repository = ref.watch(homeRepositoryProvider);
+  return repository.getCatalogServices();
+});
+
+// Catalog Search Query & Results Providers
+final catalogSearchQueryProvider = StateProvider<String>((ref) => '');
+
+final catalogSearchResultsProvider =
+    FutureProvider<List<CatalogService>>((ref) async {
+  final query = ref.watch(catalogSearchQueryProvider).trim();
+  if (query.isEmpty) return [];
+  final repository = ref.watch(homeRepositoryProvider);
+  return repository.searchCatalogServices(query);
+});
+
+
 // Selected Nearby Shop Filter Tag Provider
 final selectedNearbyFilterProvider = StateProvider<String>((ref) => 'All');
 

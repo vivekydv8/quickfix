@@ -116,9 +116,9 @@ class _NotifyMeDialogState extends ConsumerState<NotifyMeDialog> {
                           return;
                         }
                         setState(() => _isSubmitting = true);
+                        final nav = Navigator.of(context);
+                        final messenger = ScaffoldMessenger.of(context);
                         try {
-                          final nav = Navigator.of(context);
-                          final messenger = ScaffoldMessenger.of(context);
                           final dioClient = ref.read(dioClientProvider);
                           await dioClient.post(
                             '/demand/submit',
@@ -143,8 +143,8 @@ class _NotifyMeDialogState extends ConsumerState<NotifyMeDialog> {
                           }
                         } catch (e) {
                           if (mounted) {
-                            Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            nav.pop();
+                            messenger.showSnackBar(
                               const SnackBar(
                                 content: Text(
                                   '✅ You\'re registered! We\'ll notify you when we launch.',

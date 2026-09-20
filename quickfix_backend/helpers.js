@@ -47,10 +47,12 @@ async function sendFcmNotification(targetId, title, body, data = {}, targetType 
     const isPartner = targetType === 'partner' || targetType === 'shop';
 
     // 1. ALWAYS persist notification to DB so in-app notifications screen receives it
+    let savedNotifId = '';
     try {
       const { Notification } = require('./models');
+      savedNotifId = `notif-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
       const newNotif = new Notification({
-        id: `notif-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        id: savedNotifId,
         title,
         body,
         time: new Date().toISOString(),
@@ -60,7 +62,10 @@ async function sendFcmNotification(targetId, title, body, data = {}, targetType 
         shopId: isPartner ? String(targetId) : '',
         type: data.type || 'general',
         bookingId: data.bookingId || '',
-        deepLink: data.deepLink || ''
+        deepLink: data.deepLink || '',
+        isRead: false,
+        readBy: [],
+        deletedBy: []
       });
       await newNotif.save();
     } catch (dbErr) {
@@ -100,6 +105,10 @@ async function sendFcmNotification(targetId, title, body, data = {}, targetType 
     const stringifiedData = {};
     for (const [k, v] of Object.entries(data)) {
       stringifiedData[k] = String(v);
+    }
+    if (savedNotifId) {
+      stringifiedData['notificationId'] = savedNotifId;
+      stringifiedData['id'] = savedNotifId;
     }
     stringifiedData['click_action'] = 'FLUTTER_NOTIFICATION_CLICK';
 
@@ -151,20 +160,25 @@ async function sendFcmTopicNotification(topic, title, body, data = {}) {
   try {
     const isPartner = topic === 'providers';
 
+    let savedTopicAlertId = '';
     // Persist broadcast alert to DB
     try {
       const { Notification } = require('./models');
+      savedTopicAlertId = `topic-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
       const newAlert = new Notification({
-        id: `topic-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        id: savedTopicAlertId,
         title,
         body,
         time: new Date().toISOString(),
         icon: data.icon || (isPartner ? 'work' : 'campaign'),
         iconColor: data.iconColor || 'primary',
-        userId: !isPartner ? '' : '',
-        shopId: isPartner ? '' : '',
+        userId: '',
+        shopId: '',
         type: 'broadcast',
-        bookingId: data.bookingId || ''
+        bookingId: data.bookingId || '',
+        isRead: false,
+        readBy: [],
+        deletedBy: []
       });
       await newAlert.save();
     } catch (dbErr) {
@@ -182,6 +196,10 @@ async function sendFcmTopicNotification(topic, title, body, data = {}) {
     const stringifiedData = {};
     for (const [k, v] of Object.entries(data)) {
       stringifiedData[k] = String(v);
+    }
+    if (savedTopicAlertId) {
+      stringifiedData['notificationId'] = savedTopicAlertId;
+      stringifiedData['id'] = savedTopicAlertId;
     }
     stringifiedData['click_action'] = 'FLUTTER_NOTIFICATION_CLICK';
 

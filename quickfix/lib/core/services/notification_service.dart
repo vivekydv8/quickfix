@@ -50,8 +50,11 @@ Map<String, dynamic>? _parseMessage(RemoteMessage message) {
     return null;
   }
 
-  final id =
-      message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString();
+  final id = (data['notificationId'] ??
+          data['id'] ??
+          message.messageId ??
+          DateTime.now().millisecondsSinceEpoch.toString())
+      .toString();
   return {
     'id': id,
     'title': title.isNotEmpty ? title : 'Notification',
@@ -453,6 +456,29 @@ class NotificationService {
       default:
         appRouter.push('/notifications');
         break;
+    }
+  }
+
+  /// Cancels a specific locally displayed system tray notification
+  static Future<void> cancelNotification(String id) async {
+    try {
+      if (kIsWeb) return;
+      final notifId = id.hashCode;
+      await _localNotificationsPlugin.cancel(notifId);
+      AppLogger.info('Cancelled local notification: $id (hash: $notifId)', tag: 'FCM');
+    } catch (e) {
+      AppLogger.info('Local notification cancellation skipped or unavailable: $e', tag: 'FCM');
+    }
+  }
+
+  /// Cancels all displayed system notifications
+  static Future<void> cancelAllNotifications() async {
+    try {
+      if (kIsWeb) return;
+      await _localNotificationsPlugin.cancelAll();
+      AppLogger.info('Cancelled all local notifications', tag: 'FCM');
+    } catch (e) {
+      AppLogger.info('Local notifications cancellation skipped or unavailable: $e', tag: 'FCM');
     }
   }
 }

@@ -78,6 +78,125 @@ async function deleteCategory(req, res) {
   }
 }
 
+// --- SUBCATEGORY HANDLERS ---
+async function getSubcategories(req, res) {
+  const categoryId = req.params.categoryId || req.query.categoryId;
+  const includeInactive = req.query.includeInactive === 'true' || req.query.all === 'true';
+  try {
+    const list = await settingsService.getSubcategories(categoryId, includeInactive);
+    res.json(list);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to load subcategories' });
+  }
+}
+
+async function createSubcategory(req, res) {
+  try {
+    const subcat = await settingsService.createSubcategory(req.body);
+    res.json({ success: true, subcategory: subcat });
+  } catch (e) {
+    res.status(500).json({ error: e.message || 'Failed to create subcategory' });
+  }
+}
+
+async function updateSubcategory(req, res) {
+  const id = req.params.id || req.body.id;
+  try {
+    const subcat = await settingsService.updateSubcategory(id, req.body);
+    res.json({ success: true, subcategory: subcat });
+  } catch (e) {
+    if (e.message === 'Subcategory not found') {
+      return res.status(404).json({ error: e.message });
+    }
+    res.status(500).json({ error: e.message || 'Failed to update subcategory' });
+  }
+}
+
+async function deleteSubcategory(req, res) {
+  const id = req.params.id || req.body.id;
+  try {
+    const deleted = await settingsService.deleteSubcategory(id);
+    if (deleted) {
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'Subcategory not found' });
+    }
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to delete subcategory' });
+  }
+}
+
+// --- CATALOG SERVICE HANDLERS ---
+async function getCatalogServices(req, res) {
+  const subcategoryId = req.params.subcategoryId || req.query.subcategoryId;
+  const categoryId = req.params.categoryId || req.query.categoryId;
+  const includeInactive = req.query.includeInactive === 'true' || req.query.all === 'true';
+  try {
+    const list = await settingsService.getCatalogServices(subcategoryId, categoryId, includeInactive);
+    res.json(list);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to load services' });
+  }
+}
+
+async function getCatalogServiceById(req, res) {
+  try {
+    const srv = await settingsService.getCatalogServiceById(req.params.id);
+    res.json(srv);
+  } catch (e) {
+    if (e.message === 'Service not found') {
+      return res.status(404).json({ error: e.message });
+    }
+    res.status(500).json({ error: 'Failed to fetch service details' });
+  }
+}
+
+async function searchCatalogServices(req, res) {
+  const query = req.query.q || req.query.query || '';
+  try {
+    const results = await settingsService.searchCatalogServices(query);
+    res.json(results);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to search catalog services' });
+  }
+}
+
+async function createCatalogService(req, res) {
+  try {
+    const srv = await settingsService.createCatalogService(req.body);
+    res.json({ success: true, service: srv });
+  } catch (e) {
+    res.status(500).json({ error: e.message || 'Failed to create service' });
+  }
+}
+
+async function updateCatalogService(req, res) {
+  const id = req.params.id || req.body.id;
+  try {
+    const srv = await settingsService.updateCatalogService(id, req.body);
+    res.json({ success: true, service: srv });
+  } catch (e) {
+    if (e.message === 'Catalog service not found') {
+      return res.status(404).json({ error: e.message });
+    }
+    res.status(500).json({ error: e.message || 'Failed to update service' });
+  }
+}
+
+async function deleteCatalogService(req, res) {
+  const id = req.params.id || req.body.id;
+  try {
+    const deleted = await settingsService.deleteCatalogService(id);
+    if (deleted) {
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'Service not found' });
+    }
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to delete service' });
+  }
+}
+
 async function getBanners(req, res) {
   try {
     const banners = await settingsService.getBanners(false);
@@ -692,6 +811,16 @@ module.exports = {
   createCategory,
   updateCategory,
   deleteCategory,
+  getSubcategories,
+  createSubcategory,
+  updateSubcategory,
+  deleteSubcategory,
+  getCatalogServices,
+  getCatalogServiceById,
+  searchCatalogServices,
+  createCatalogService,
+  updateCatalogService,
+  deleteCatalogService,
   getBanners,
   getAdminBanners,
   createBanner,

@@ -85,4 +85,28 @@ class HomeRepositoryImpl implements HomeRepository {
   Future<Map<String, dynamic>> getAppSettings() async {
     return await _remoteDataSource.getAppSettings();
   }
+
+  @override
+  Future<List<Subcategory>> getSubcategories(String categoryId) async {
+    return await _remoteDataSource.getSubcategories(categoryId);
+  }
+
+  @override
+  Future<List<Subcategory>> getAllSubcategories() async {
+    return await _remoteDataSource.getAllSubcategories();
+  }
+
+  @override
+  Future<List<CatalogService>> getCatalogServices({String? categoryId, String? subcategoryId}) async {
+    return await _remoteDataSource.getCatalogServices(
+      categoryId: categoryId,
+      subcategoryId: subcategoryId,
+    );
+  }
+
+  @override
+  Future<List<CatalogService>> searchCatalogServices(String query) async {
+    return await _remoteDataSource.searchCatalogServices(query);
+  }
 }
+

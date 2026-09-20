@@ -14,6 +14,15 @@ class ApiEndpoints {
 
   // Home & Hyperlocal services
   static const String categories = '/categories';
+  static const String subcategories = '/subcategories';
+  static String categorySubcategories(String categoryId) =>
+      '/categories/$categoryId/subcategories';
+  static const String catalogServices = '/services';
+  static String categoryCatalogServices(String categoryId) =>
+      '/categories/$categoryId/services';
+  static String subcategoryCatalogServices(String subcategoryId) =>
+      '/subcategories/$subcategoryId/services';
+  static const String searchCatalogServices = '/services/search';
   static const String shops = '/shops';
   static const String professionals = '/professionals';
   static const String reviews = '/reviews';
@@ -23,6 +32,7 @@ class ApiEndpoints {
   static const String homepageLayout = '/homepage/layout';
   static const String customSections = '/custom-sections';
   static const String settings = '/settings';
+
 
   // Bookings
   static const String packages = '/packages';

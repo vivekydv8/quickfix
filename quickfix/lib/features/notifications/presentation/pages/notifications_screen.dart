@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:quickfix/core/theme/app_colors.dart';
 import 'package:quickfix/core/utils/haptics.dart';
 import 'package:quickfix/features/home/presentation/controllers/home_providers.dart';
+import 'package:quickfix/features/notifications/domain/models/notification_item.dart';
 import 'package:quickfix/features/notifications/presentation/controllers/notifications_provider.dart';
 import 'package:quickfix/core/network/error_handler.dart';
 import 'package:quickfix/core/widgets/error_widgets.dart';
@@ -97,7 +98,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+        backgroundColor:
+            isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
         appBar: AppBar(
           backgroundColor: AppColors.primary,
           elevation: 0,
@@ -119,12 +121,28 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 AppHaptics.lightTap();
-                notificationsAsync.whenData((list) {
-                  final ids = list.map((e) => e['id']?.toString() ?? '').toList();
-                  ref.read(readNotificationsProvider.notifier).markAllAsRead(ids);
-                });
+                try {
+                  await ref.read(notificationsProvider.notifier).markAllAsRead();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('All notifications marked as read'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (_) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Failed to mark all as read. Please try again.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
               },
               child: Text(
                 'Mark all read',
@@ -139,7 +157,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               tooltip: 'Sync alerts',
               onPressed: () {
                 AppHaptics.lightTap();
-                ref.invalidate(syncNotificationsProvider);
+                ref.read(notificationsProvider.notifier).refresh();
               },
             ),
           ],
@@ -147,17 +165,21 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         body: RefreshIndicator(
           color: AppColors.primaryAccent,
           onRefresh: () async =>
-              await ref.refresh(syncNotificationsProvider.future),
+              await ref.read(notificationsProvider.notifier).refresh(),
           child: notificationsAsync.when(
             loading: () => _buildSkeleton(isDark),
             error: (err, st) => SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Container(
-                height: MediaQuery.of(context).size.height - kToolbarHeight - MediaQuery.of(context).padding.top - 50,
+                height: MediaQuery.of(context).size.height -
+                    kToolbarHeight -
+                    MediaQuery.of(context).padding.top -
+                    50,
                 alignment: Alignment.center,
                 child: CommonErrorWidget(
                   message: ErrorHandler.handle(err, st).message,
-                  onRetry: () => ref.invalidate(syncNotificationsProvider),
+                  onRetry: () =>
+                      ref.read(notificationsProvider.notifier).refresh(),
                 ),
               ),
             ),
@@ -166,11 +188,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 return SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Container(
-                    height: MediaQuery.of(context).size.height - kToolbarHeight - MediaQuery.of(context).padding.top - 50,
+                    height: MediaQuery.of(context).size.height -
+                        kToolbarHeight -
+                        MediaQuery.of(context).padding.top -
+                        50,
                     alignment: Alignment.center,
                     child: const EmptyStateWidget(
                       title: 'All caught up!',
-                      message: 'We\'ll notify you about bookings, offers, and updates here.',
+                      message:
+                          'We\'ll notify you about bookings, offers, and updates here.',
                       icon: Icons.notifications_active_outlined,
                     ),
                   ),
@@ -178,12 +204,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               }
 
               // Group notifications
-              final today = <Map<String, dynamic>>[];
-              final yesterday = <Map<String, dynamic>>[];
-              final earlier = <Map<String, dynamic>>[];
+              final today = <NotificationItem>[];
+              final yesterday = <NotificationItem>[];
+              final earlier = <NotificationItem>[];
 
               for (final item in notifications) {
-                final timeVal = item['time']?.toString() ?? 'Just now';
+                final timeVal = item.createdAt.isNotEmpty
+                    ? item.createdAt
+                    : item.time;
                 final parsedDate = DateTime.tryParse(timeVal);
                 if (parsedDate != null) {
                   final localDate = parsedDate.toLocal();
@@ -212,15 +240,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 children: [
                   if (today.isNotEmpty) ...[
                     SectionHeader(title: 'Today', isDark: isDark),
-                    ...today.asMap().entries.map((e) => _buildNotificationCard(e.value, e.key, isDark)),
+                    ...today.asMap().entries.map((e) =>
+                        _buildNotificationCard(e.value, e.key, isDark)),
                   ],
                   if (yesterday.isNotEmpty) ...[
                     SectionHeader(title: 'Yesterday', isDark: isDark),
-                    ...yesterday.asMap().entries.map((e) => _buildNotificationCard(e.value, e.key, isDark)),
+                    ...yesterday.asMap().entries.map((e) =>
+                        _buildNotificationCard(e.value, e.key, isDark)),
                   ],
                   if (earlier.isNotEmpty) ...[
                     SectionHeader(title: 'Earlier', isDark: isDark),
-                    ...earlier.asMap().entries.map((e) => _buildNotificationCard(e.value, e.key, isDark)),
+                    ...earlier.asMap().entries.map((e) =>
+                        _buildNotificationCard(e.value, e.key, isDark)),
                   ],
                 ],
               );
@@ -231,14 +262,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-  Widget _buildNotificationCard(Map<String, dynamic> item, int index, bool isDark) {
-    final id = item['id']?.toString() ?? index.toString();
-    final isRead = item['isRead'] == true;
-    final iconColor = item['iconColor']?.toString() ?? 'primary';
+  Widget _buildNotificationCard(
+      NotificationItem item, int index, bool isDark) {
+    final id = item.id.isNotEmpty ? item.id : index.toString();
+    final isRead = item.isRead;
+    final iconColor = item.iconColor;
     final color = _colorForTag(iconColor, isDark);
     final icon = _iconForColor(iconColor);
 
-    final timeVal = item['time']?.toString() ?? 'Just now';
+    final timeVal =
+        item.createdAt.isNotEmpty ? item.createdAt : item.time;
     String timeStr = 'Just now';
 
     final parsedDate = DateTime.tryParse(timeVal);
@@ -252,7 +285,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Dismissible(
-        key: Key(id),
+        key: Key('notif_$id'),
         direction: DismissDirection.endToStart,
         background: Container(
           alignment: Alignment.centerRight,
@@ -263,24 +296,53 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           ),
           child: const Icon(Icons.delete_outline, color: Colors.red),
         ),
-        onDismissed: (_) {
+        onDismissed: (_) async {
           AppHaptics.lightTap();
-          ref.read(readNotificationsProvider.notifier).deleteNotification(id);
+          try {
+            await ref
+                .read(notificationsProvider.notifier)
+                .deleteNotification(item.id);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Notification permanently deleted'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                      'Failed to delete notification. Restoring item...'),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+          }
         },
         child: GestureDetector(
           onTap: () {
             AppHaptics.lightTap();
-            ref.read(readNotificationsProvider.notifier).markAsRead(id);
-            NotificationService.handleNotificationClick(item);
+            if (!isRead) {
+              ref.read(notificationsProvider.notifier).markAsRead(item.id);
+            }
+            NotificationService.handleNotificationClick(item.toJson());
           },
           child: Container(
             decoration: BoxDecoration(
-              color: !isRead 
-                  ? (isDark ? AppColors.primaryAccent.withValues(alpha: 0.1) : AppColors.primaryAccent.withValues(alpha: 0.05))
+              color: !isRead
+                  ? (isDark
+                      ? AppColors.primaryAccent.withValues(alpha: 0.1)
+                      : AppColors.primaryAccent.withValues(alpha: 0.05))
                   : (isDark ? AppColors.surfaceDark : Colors.white),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: !isRead ? Colors.transparent : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                color: !isRead
+                    ? Colors.transparent
+                    : (isDark ? AppColors.borderDark : AppColors.borderLight),
                 width: 1,
               ),
               boxShadow: [
@@ -323,19 +385,23 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                item['title']?.toString() ?? '',
+                                item.title,
                                 style: GoogleFonts.outfit(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : AppColors.primary,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppColors.primary,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                item['body']?.toString() ?? '',
+                                item.body,
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
                                 ),
                               ),
                               const SizedBox(height: 8),

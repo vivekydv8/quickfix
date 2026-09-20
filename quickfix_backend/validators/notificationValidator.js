@@ -6,6 +6,15 @@ function validateSendNotification(req, res, next) {
   next();
 }
 
+function validateNotificationId(req, res, next) {
+  const { id } = req.params;
+  if (!id || typeof id !== 'string' || id.trim().length === 0) {
+    return res.status(400).json({ error: 'Notification ID is required and must be a non-empty string' });
+  }
+  next();
+}
+
 module.exports = {
-  validateSendNotification
+  validateSendNotification,
+  validateNotificationId
 };

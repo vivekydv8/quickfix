@@ -230,6 +230,80 @@ class HomeRemoteDataSource {
     }
   }
 
+  Future<List<Subcategory>> getSubcategories(String categoryId) async {
+    final cacheKey = 'subcategories_$categoryId';
+    try {
+      final response = await _client.get(ApiEndpoints.categorySubcategories(categoryId));
+      final data = response.data as List;
+      await HiveService.saveDataCache(cacheKey, data);
+      return data.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      final cached = HiveService.getDataCache(cacheKey);
+      if (cached != null && cached is List) {
+        return cached.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
+      }
+      rethrow;
+    }
+  }
+
+  Future<List<Subcategory>> getAllSubcategories() async {
+    const cacheKey = 'all_subcategories';
+    try {
+      final response = await _client.get(ApiEndpoints.subcategories);
+      final data = response.data as List;
+      await HiveService.saveDataCache(cacheKey, data);
+      return data.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      final cached = HiveService.getDataCache(cacheKey);
+      if (cached != null && cached is List) {
+        return cached.map((json) => Subcategory.fromJson(json as Map<String, dynamic>)).toList();
+      }
+      rethrow;
+    }
+  }
+
+  Future<List<CatalogService>> getCatalogServices({String? categoryId, String? subcategoryId}) async {
+    String endpoint;
+    String cacheKey;
+    if (subcategoryId != null && subcategoryId.isNotEmpty) {
+      endpoint = ApiEndpoints.subcategoryCatalogServices(subcategoryId);
+      cacheKey = 'catalog_services_subcat_$subcategoryId';
+    } else if (categoryId != null && categoryId.isNotEmpty) {
+      endpoint = ApiEndpoints.categoryCatalogServices(categoryId);
+      cacheKey = 'catalog_services_cat_$categoryId';
+    } else {
+      endpoint = ApiEndpoints.catalogServices;
+      cacheKey = 'catalog_services_all';
+    }
+
+    try {
+      final response = await _client.get(endpoint);
+      final data = response.data as List;
+      await HiveService.saveDataCache(cacheKey, data);
+      return data.map((json) => CatalogService.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      final cached = HiveService.getDataCache(cacheKey);
+      if (cached != null && cached is List) {
+        return cached.map((json) => CatalogService.fromJson(json as Map<String, dynamic>)).toList();
+      }
+      rethrow;
+    }
+  }
+
+  Future<List<CatalogService>> searchCatalogServices(String query) async {
+    try {
+      final response = await _client.get(
+        ApiEndpoints.searchCatalogServices,
+        queryParameters: {'q': query},
+      );
+      final data = response.data as List;
+      return data.map((json) => CatalogService.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+
   // Helper icons and color utilities
   IconData _parseIcon(String id) {
     switch (id) {

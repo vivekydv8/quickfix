@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const { 
-  Settings, Category, Banner, Offer, AuditLog, Review, Professional, 
+  Settings, Category, Subcategory, CatalogService, Banner, Offer, AuditLog, Review, Professional, 
   User, Shop, Booking, Notification, CmsSection, CustomSection, Demand, AdminUser,
   Promotion, SpecialCard
 } = require('../models');
@@ -81,6 +81,124 @@ async function deleteCategory(id) {
     deleteFromCloudinary(deleted.iconUrl);
   }
   return deleted;
+}
+
+// --- SUBCATEGORY SERVICES ---
+async function getSubcategories(categoryId, includeInactive = false) {
+  let query = {};
+  if (categoryId) {
+    query.categoryId = categoryId.toLowerCase();
+  }
+  if (!includeInactive) {
+    query.isActive = true;
+  }
+  const list = await Subcategory.find(query);
+  return list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+}
+
+async function createSubcategory(data) {
+  const { id, categoryId, name, description, imageUrl, displayOrder, isActive } = data;
+  const slug = (id || name.toLowerCase().replace(/\s+/g, '_')).trim();
+  const subcat = new Subcategory({
+    id: slug,
+    categoryId: categoryId.toLowerCase().trim(),
+    name: name.trim(),
+    description: description || '',
+    imageUrl: imageUrl || '',
+    displayOrder: displayOrder || 0,
+    isActive: isActive !== false
+  });
+  await subcat.save();
+  return subcat;
+}
+
+async function updateSubcategory(id, data) {
+  const subcat = await Subcategory.findOne(buildIdQuery(id));
+  if (!subcat) throw new Error('Subcategory not found');
+  if (data.name !== undefined) subcat.name = data.name;
+  if (data.categoryId !== undefined) subcat.categoryId = data.categoryId.toLowerCase().trim();
+  if (data.description !== undefined) subcat.description = data.description;
+  if (data.imageUrl !== undefined) subcat.imageUrl = data.imageUrl;
+  if (data.displayOrder !== undefined) subcat.displayOrder = data.displayOrder;
+  if (data.isActive !== undefined) subcat.isActive = data.isActive;
+  await subcat.save();
+  return subcat;
+}
+
+async function deleteSubcategory(id) {
+  return await Subcategory.findOneAndDelete(buildIdQuery(id));
+}
+
+// --- CATALOG SERVICE METHODS ---
+async function getCatalogServices(subcategoryId, categoryId, includeInactive = false) {
+  let query = {};
+  if (subcategoryId) query.subcategoryId = subcategoryId;
+  if (categoryId) query.categoryId = categoryId.toLowerCase();
+  if (!includeInactive) query.isActive = true;
+  const list = await CatalogService.find(query);
+  return list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+}
+
+async function getCatalogServiceById(id) {
+  const srv = await CatalogService.findOne(buildIdQuery(id));
+  if (!srv) throw new Error('Service not found');
+  return srv;
+}
+
+async function searchCatalogServices(searchQuery) {
+  if (!searchQuery || !searchQuery.trim()) return [];
+  const q = searchQuery.trim();
+  return await CatalogService.find({
+    isActive: true,
+    $or: [
+      { title: { $regex: q, $options: 'i' } },
+      { description: { $regex: q, $options: 'i' } },
+      { categoryId: { $regex: q, $options: 'i' } },
+      { subcategoryId: { $regex: q, $options: 'i' } }
+    ]
+  });
+}
+
+async function createCatalogService(data) {
+  const id = data.id || `srv_${Date.now()}`;
+  const srv = new CatalogService({
+    id,
+    categoryId: (data.categoryId || '').toLowerCase().trim(),
+    subcategoryId: (data.subcategoryId || '').trim(),
+    title: data.title,
+    description: data.description || '',
+    imageUrl: data.imageUrl || '',
+    price: parseFloat(data.price) || 0,
+    originalPrice: parseFloat(data.originalPrice) || 0,
+    pricingType: data.pricingType || 'fixed',
+    minPrice: parseFloat(data.minPrice) || 0,
+    maxPrice: parseFloat(data.maxPrice) || 0,
+    visitingCharges: parseFloat(data.visitingCharges) || 0,
+    isFreeInspection: data.isFreeInspection === true,
+    durationText: data.durationText || '1 hr',
+    bulletPoints: Array.isArray(data.bulletPoints) ? data.bulletPoints : [],
+    rating: parseFloat(data.rating) || 4.8,
+    reviewsCount: parseInt(data.reviewsCount) || 0,
+    displayOrder: data.displayOrder || 0,
+    isActive: data.isActive !== false
+  });
+  await srv.save();
+  return srv;
+}
+
+async function updateCatalogService(id, data) {
+  const srv = await CatalogService.findOne(buildIdQuery(id));
+  if (!srv) throw new Error('Catalog service not found');
+  const fields = ['title', 'description', 'imageUrl', 'price', 'originalPrice', 'pricingType', 'minPrice', 'maxPrice', 'visitingCharges', 'isFreeInspection', 'durationText', 'bulletPoints', 'rating', 'reviewsCount', 'displayOrder', 'isActive', 'categoryId', 'subcategoryId'];
+  for (const f of fields) {
+    if (data[f] !== undefined) srv[f] = data[f];
+  }
+  await srv.save();
+  return srv;
+}
+
+async function deleteCatalogService(id) {
+  return await CatalogService.findOneAndDelete(buildIdQuery(id));
 }
 
 async function uploadBannerImage(base64Image, validatedMime) {
@@ -1232,6 +1350,16 @@ module.exports = {
   createCategory,
   updateCategory,
   deleteCategory,
+  getSubcategories,
+  createSubcategory,
+  updateSubcategory,
+  deleteSubcategory,
+  getCatalogServices,
+  getCatalogServiceById,
+  searchCatalogServices,
+  createCatalogService,
+  updateCatalogService,
+  deleteCatalogService,
   getBanners,
   getAdminBanners,
   createBanner,

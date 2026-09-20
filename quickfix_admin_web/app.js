@@ -2541,6 +2541,288 @@ async function deleteCategory(id) {
   }, 'danger');
 }
 
+// Switch between Main Categories, Subcategories, and Catalog Services tabs
+function switchCatalogSubTab(tab) {
+  const btnCats = document.getElementById('btn-subtab-categories');
+  const btnSubcats = document.getElementById('btn-subtab-subcategories');
+  const btnSrvs = document.getElementById('btn-subtab-services');
+
+  const secCats = document.getElementById('catalog-section-categories');
+  const secSubcats = document.getElementById('catalog-section-subcategories');
+  const secSrvs = document.getElementById('catalog-section-services');
+
+  if (!btnCats || !btnSubcats || !btnSrvs) return;
+
+  btnCats.className = 'btn btn-secondary';
+  btnSubcats.className = 'btn btn-secondary';
+  btnSrvs.className = 'btn btn-secondary';
+
+  if (secCats) secCats.style.display = 'none';
+  if (secSubcats) secSubcats.style.display = 'none';
+  if (secSrvs) secSrvs.style.display = 'none';
+
+  if (tab === 'categories') {
+    btnCats.className = 'btn btn-primary';
+    if (secCats) secCats.style.display = 'grid';
+    loadCategories();
+  } else if (tab === 'subcategories') {
+    btnSubcats.className = 'btn btn-primary';
+    if (secSubcats) secSubcats.style.display = 'grid';
+    loadAdminSubcategories();
+  } else if (tab === 'services') {
+    btnSrvs.className = 'btn btn-primary';
+    if (secSrvs) secSrvs.style.display = 'grid';
+    populateSubcategoryDropdown();
+    loadAdminCatalogServices();
+  }
+}
+
+// Load Subcategories for Admin
+async function loadAdminSubcategories() {
+  const container = document.getElementById('subcategories-list');
+  if (!container) return;
+  container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Loading subcategories...</p>';
+
+  const filterSelect = document.getElementById('subcat-filter-category');
+  const catFilter = filterSelect ? filterSelect.value : '';
+
+  try {
+    const url = catFilter ? `${API_URL}/categories/${catFilter}/subcategories` : `${API_URL}/subcategories`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.data || []);
+
+    container.innerHTML = '';
+    if (list.length === 0) {
+      container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px;">No subcategories found.</p>';
+      return;
+    }
+
+    list.forEach(item => {
+      const card = document.createElement('div');
+      card.style = 'display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--bg-card-hover); border:1px solid var(--border-color); border-radius:10px;';
+      card.innerHTML = `
+        <div>
+          <div style="font-weight:600; font-size:14px; display:flex; align-items:center; gap:8px;">
+            <span>${item.name}</span>
+            <span class="badge" style="background:var(--primary-solid); color:#fff; font-size:10px;">${item.categoryId}</span>
+            <span style="font-size:11px; color:var(--text-muted);">#${item.id}</span>
+          </div>
+          ${item.description ? `<p style="margin:4px 0 0; font-size:12px; color:var(--text-secondary);">${item.description}</p>` : ''}
+        </div>
+        <div>
+          <button class="btn btn-icon btn-delete" onclick="deleteAdminSubcategory('${item.id}')" title="Delete Subcategory"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  } catch (e) {
+    container.innerHTML = '<p style="text-align:center; color:var(--danger);">Failed to load subcategories.</p>';
+    logError('loadAdminSubcategories', e);
+  }
+}
+
+// Handle Subcategory Form Submit
+async function handleSubcategorySubmit(event) {
+  if (event) event.preventDefault();
+  const categoryId = document.getElementById('subcat-category').value;
+  const id = document.getElementById('subcat-id').value.trim();
+  const name = document.getElementById('subcat-name').value.trim();
+  const description = document.getElementById('subcat-desc').value.trim();
+  const displayOrder = parseInt(document.getElementById('subcat-order').value, 10) || 1;
+
+  if (!categoryId || !id || !name) {
+    showToast('Please fill all required fields', 'warning');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/admin/subcategories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, categoryId, name, description, displayOrder, isActive: true })
+    });
+    const json = await res.json();
+    if (res.ok && (json.success !== false)) {
+      showToast('Subcategory saved successfully!', 'success');
+      document.getElementById('subcategory-form').reset();
+      loadAdminSubcategories();
+    } else {
+      showToast(json.error || 'Failed to save subcategory', 'error');
+    }
+  } catch (e) {
+    showToast('Network error saving subcategory', 'error');
+    logError('handleSubcategorySubmit', e);
+  }
+}
+
+// Delete Subcategory
+async function deleteAdminSubcategory(id) {
+  showConfirmModal('Delete Subcategory', `Are you sure you want to delete subcategory "${id}"?`, async () => {
+    try {
+      const res = await fetch(`${API_URL}/admin/subcategories/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok && data.success !== false) {
+        showToast('Subcategory deleted', 'success');
+        loadAdminSubcategories();
+      } else {
+        showToast(data.error || 'Failed to delete subcategory', 'error');
+      }
+    } catch (e) {
+      logError('deleteAdminSubcategory', e);
+    }
+  }, 'danger');
+}
+
+// Populate Subcategory dropdown when category changes in Catalog Service form
+async function populateSubcategoryDropdown() {
+  const catSelect = document.getElementById('srv-category');
+  const subcatSelect = document.getElementById('srv-subcategory');
+  if (!catSelect || !subcatSelect) return;
+
+  const categoryId = catSelect.value;
+  try {
+    const res = await fetch(`${API_URL}/categories/${categoryId}/subcategories`);
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.data || []);
+    subcatSelect.innerHTML = '';
+    if (list.length === 0) {
+      subcatSelect.innerHTML = '<option value="">No subcategories available</option>';
+      return;
+    }
+    list.forEach(sub => {
+      const opt = document.createElement('option');
+      opt.value = sub.id;
+      opt.textContent = `${sub.name} (${sub.id})`;
+      subcatSelect.appendChild(opt);
+    });
+  } catch (e) {
+    logError('populateSubcategoryDropdown', e);
+  }
+}
+
+// Load Catalog Services for Admin
+async function loadAdminCatalogServices() {
+  const container = document.getElementById('catalog-services-list');
+  if (!container) return;
+  container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Loading catalog services...</p>';
+
+  try {
+    const res = await fetch(`${API_URL}/services`);
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.data || []);
+
+    container.innerHTML = '';
+    if (list.length === 0) {
+      container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px;">No catalog services found.</p>';
+      return;
+    }
+
+    list.forEach(srv => {
+      const card = document.createElement('div');
+      card.style = 'display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--bg-card-hover); border:1px solid var(--border-color); border-radius:10px;';
+      const bulletText = (srv.bulletPoints || []).slice(0, 2).join(' • ');
+      card.innerHTML = `
+        <div style="flex:1;">
+          <div style="font-weight:600; font-size:14px; display:flex; align-items:center; gap:8px;">
+            <span>${srv.title}</span>
+            <span class="badge" style="background:#10B981; color:#fff; font-size:11px;">₹${srv.price}</span>
+            <span class="badge" style="background:var(--primary-solid); color:#fff; font-size:10px;">${srv.pricingType || 'fixed'}</span>
+          </div>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+            ${srv.categoryId} &rsaquo; ${srv.subcategoryId} | Visit: ₹${srv.visitingCharges || 0} | ${srv.durationText || ''}
+          </div>
+          ${bulletText ? `<p style="margin:4px 0 0; font-size:11px; color:var(--text-secondary);">${bulletText}</p>` : ''}
+        </div>
+        <div>
+          <button class="btn btn-icon btn-delete" onclick="deleteAdminCatalogService('${srv.id}')" title="Delete Service"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  } catch (e) {
+    container.innerHTML = '<p style="text-align:center; color:var(--danger);">Failed to load catalog services.</p>';
+    logError('loadAdminCatalogServices', e);
+  }
+}
+
+// Handle Catalog Service Form Submit
+async function handleCatalogServiceSubmit(event) {
+  if (event) event.preventDefault();
+  const categoryId = document.getElementById('srv-category').value;
+  const subcategoryId = document.getElementById('srv-subcategory').value;
+  const title = document.getElementById('srv-title').value.trim();
+  const price = parseFloat(document.getElementById('srv-price').value) || 0;
+  const originalPrice = parseFloat(document.getElementById('srv-orig-price').value) || 0;
+  const pricingType = document.getElementById('srv-pricing-type').value || 'fixed';
+  const durationText = document.getElementById('srv-duration').value.trim();
+  const visitingCharges = parseFloat(document.getElementById('srv-visiting').value) || 0;
+  const bulletsRaw = document.getElementById('srv-bullets').value;
+  const bulletPoints = bulletsRaw.split('\n').map(s => s.trim()).filter(Boolean);
+
+  if (!categoryId || !subcategoryId || !title || !price) {
+    showToast('Please fill all required fields', 'warning');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/admin/catalog-services`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        categoryId,
+        subcategoryId,
+        title,
+        price,
+        originalPrice,
+        pricingType,
+        durationText,
+        visitingCharges,
+        bulletPoints,
+        isActive: true
+      })
+    });
+    const json = await res.json();
+    if (res.ok && json.success !== false) {
+      showToast('Catalog service saved successfully!', 'success');
+      document.getElementById('catalog-service-form').reset();
+      loadAdminCatalogServices();
+    } else {
+      showToast(json.error || 'Failed to save catalog service', 'error');
+    }
+  } catch (e) {
+    showToast('Network error saving catalog service', 'error');
+    logError('handleCatalogServiceSubmit', e);
+  }
+}
+
+// Delete Catalog Service
+async function deleteAdminCatalogService(id) {
+  showConfirmModal('Delete Catalog Service', `Are you sure you want to delete service "${id}"?`, async () => {
+    try {
+      const res = await fetch(`${API_URL}/admin/catalog-services/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok && data.success !== false) {
+        showToast('Catalog service deleted', 'success');
+        loadAdminCatalogServices();
+      } else {
+        showToast(data.error || 'Failed to delete service', 'error');
+      }
+    } catch (e) {
+      logError('deleteAdminCatalogService', e);
+    }
+  }, 'danger');
+}
+
+window.switchCatalogSubTab = switchCatalogSubTab;
+window.loadAdminSubcategories = loadAdminSubcategories;
+window.handleSubcategorySubmit = handleSubcategorySubmit;
+window.deleteAdminSubcategory = deleteAdminSubcategory;
+window.populateSubcategoryDropdown = populateSubcategoryDropdown;
+window.loadAdminCatalogServices = loadAdminCatalogServices;
+window.handleCatalogServiceSubmit = handleCatalogServiceSubmit;
+window.deleteAdminCatalogService = deleteAdminCatalogService;
+
 // Load financial stats page
 function loadPaymentStats() {
   const payComm = document.getElementById('pay-platform-comm');

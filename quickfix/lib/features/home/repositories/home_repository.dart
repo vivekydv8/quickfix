@@ -17,4 +17,9 @@ abstract class HomeRepository {
   Future<List<CmsSection>> getHomepageLayout();
   Future<List<CustomSection>> getCustomSections();
   Future<Map<String, dynamic>> getAppSettings();
+  Future<List<Subcategory>> getSubcategories(String categoryId);
+  Future<List<Subcategory>> getAllSubcategories();
+  Future<List<CatalogService>> getCatalogServices({String? categoryId, String? subcategoryId});
+  Future<List<CatalogService>> searchCatalogServices(String query);
 }
+

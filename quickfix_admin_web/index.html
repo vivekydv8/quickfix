@@ -865,7 +865,14 @@
            TAB: CATEGORIES
       ════════════════════════════════════════ -->
       <div class="tab-pane" id="categories-tab">
-        <div class="split-layout">
+        <div style="display:flex; gap:10px; margin-bottom:16px;">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-show-categories" onclick="switchCatalogSubTab('categories')"><i class="fa-solid fa-folder"></i> Main Categories</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-show-subcategories" onclick="switchCatalogSubTab('subcategories')"><i class="fa-solid fa-layer-group"></i> Subcategories</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-show-catalogservices" onclick="switchCatalogSubTab('services')"><i class="fa-solid fa-screwdriver-wrench"></i> Catalog Services</button>
+        </div>
+
+        <!-- 1. Main Categories View -->
+        <div id="catalog-section-categories" class="split-layout">
           <div class="card form-card">
             <div class="card-header">
               <h2><i class="fa-solid fa-square-plus"></i> Create Service Category</h2>
@@ -907,6 +914,150 @@
               <h2><i class="fa-solid fa-list-check"></i> Service Categories</h2>
             </div>
             <div class="categories-list" id="categories-list"></div>
+          </div>
+        </div>
+
+        <!-- 2. Subcategories View -->
+        <div id="catalog-section-subcategories" class="split-layout" style="display:none;">
+          <div class="card form-card">
+            <div class="card-header">
+              <h2><i class="fa-solid fa-layer-group"></i> Manage Subcategory</h2>
+            </div>
+            <form id="subcategory-form" onsubmit="handleSubcategorySubmit(event)">
+              <div class="form-group">
+                <label for="subcat-parent">Parent Category</label>
+                <select id="subcat-parent" required class="form-control" style="width:100%; padding:8px; border-radius:var(--r-sm); border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main);">
+                  <option value="electrician">Electrician</option>
+                  <option value="plumbing">Plumbing</option>
+                  <option value="carpenter">Carpenter</option>
+                  <option value="ac_repair">AC Repair</option>
+                  <option value="refrigerator_repair">Refrigerator Repair</option>
+                  <option value="washing_machine_repair">Washing Machine Repair</option>
+                  <option value="ro_water_purifier">RO / Water Purifier</option>
+                  <option value="mobile_repair">Mobile Repair</option>
+                  <option value="laptop_repair">Laptop Repair</option>
+                  <option value="tv_repair">TV Repair</option>
+                  <option value="other_services">Other Services</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="subcat-id">Subcategory ID (Slug)</label>
+                <input type="text" id="subcat-id" required placeholder="e.g. fan_repair">
+              </div>
+              <div class="form-group">
+                <label for="subcat-name">Display Name</label>
+                <input type="text" id="subcat-name" required placeholder="e.g. Fan Repair & Installation">
+              </div>
+              <div class="form-group">
+                <label for="subcat-desc">Description</label>
+                <textarea id="subcat-desc" rows="2" placeholder="Brief service summary" style="width:100%; border-radius:var(--r-sm); border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main); padding:8px;"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="subcat-order">Display Order</label>
+                <input type="number" id="subcat-order" value="1" min="1">
+              </div>
+              <button type="submit" class="btn btn-primary" id="btn-save-subcat"><i class="fa-solid fa-check"></i> Save Subcategory</button>
+            </form>
+          </div>
+
+          <div class="card list-card">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <h2><i class="fa-solid fa-list-check"></i> Subcategories List</h2>
+              <select id="subcat-filter-category" onchange="loadAdminSubcategories()" style="padding:6px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-main);">
+                <option value="">All Categories</option>
+                <option value="electrician">Electrician</option>
+                <option value="plumbing">Plumbing</option>
+                <option value="carpenter">Carpenter</option>
+                <option value="ac_repair">AC Repair</option>
+                <option value="refrigerator_repair">Refrigerator Repair</option>
+                <option value="washing_machine_repair">Washing Machine Repair</option>
+                <option value="ro_water_purifier">RO / Water Purifier</option>
+                <option value="mobile_repair">Mobile Repair</option>
+                <option value="laptop_repair">Laptop Repair</option>
+                <option value="tv_repair">TV Repair</option>
+                <option value="other_services">Other Services</option>
+              </select>
+            </div>
+            <div id="subcategories-list" style="padding:16px; display:flex; flex-direction:column; gap:10px; max-height:550px; overflow-y:auto;"></div>
+          </div>
+        </div>
+
+        <!-- 3. Catalog Services View -->
+        <div id="catalog-section-services" class="split-layout" style="display:none;">
+          <div class="card form-card">
+            <div class="card-header">
+              <h2><i class="fa-solid fa-screwdriver-wrench"></i> Manage Catalog Service</h2>
+            </div>
+            <form id="catalog-service-form" onsubmit="handleCatalogServiceSubmit(event)">
+              <div class="form-group">
+                <label for="srv-category">Main Category</label>
+                <select id="srv-category" required onchange="populateSubcategoryDropdown()" class="form-control" style="width:100%; padding:8px; border-radius:var(--r-sm); border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main);">
+                  <option value="electrician">Electrician</option>
+                  <option value="plumbing">Plumbing</option>
+                  <option value="carpenter">Carpenter</option>
+                  <option value="ac_repair">AC Repair</option>
+                  <option value="refrigerator_repair">Refrigerator Repair</option>
+                  <option value="washing_machine_repair">Washing Machine Repair</option>
+                  <option value="ro_water_purifier">RO / Water Purifier</option>
+                  <option value="mobile_repair">Mobile Repair</option>
+                  <option value="laptop_repair">Laptop Repair</option>
+                  <option value="tv_repair">TV Repair</option>
+                  <option value="other_services">Other Services</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="srv-subcategory">Subcategory</label>
+                <select id="srv-subcategory" required class="form-control" style="width:100%; padding:8px; border-radius:var(--r-sm); border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main);">
+                  <option value="fan_repair">Fan Repair & Installation</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="srv-title">Service Title</label>
+                <input type="text" id="srv-title" required placeholder="e.g. Ceiling Fan Repair">
+              </div>
+              <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                  <label for="srv-price">Price (₹)</label>
+                  <input type="number" id="srv-price" required value="199">
+                </div>
+                <div>
+                  <label for="srv-orig-price">Original Price (₹)</label>
+                  <input type="number" id="srv-orig-price" value="299">
+                </div>
+              </div>
+              <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                  <label for="srv-pricing-type">Pricing Type</label>
+                  <select id="srv-pricing-type" style="width:100%; padding:8px; border-radius:var(--r-sm); border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main);">
+                    <option value="fixed">Fixed Price</option>
+                    <option value="starting">Starting Price</option>
+                    <option value="inspection">Quote on Inspection</option>
+                    <option value="range">Price Range</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="srv-duration">Duration</label>
+                  <input type="text" id="srv-duration" value="30 mins">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="srv-visiting">Visiting Charges (₹)</label>
+                <input type="number" id="srv-visiting" value="99">
+              </div>
+              <div class="form-group">
+                <label for="srv-bullets">Inclusions (one per line)</label>
+                <textarea id="srv-bullets" rows="3" placeholder="Includes safety diagnosis&#10;Includes 30-day warranty" style="width:100%; border-radius:var(--r-sm); border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main); padding:8px;"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary" id="btn-save-srv"><i class="fa-solid fa-check"></i> Save Service</button>
+            </form>
+          </div>
+
+          <div class="card list-card">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <h2><i class="fa-solid fa-list-check"></i> Catalog Services List</h2>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="loadAdminCatalogServices()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+            </div>
+            <div id="catalog-services-list" style="padding:16px; display:flex; flex-direction:column; gap:10px; max-height:550px; overflow-y:auto;"></div>
           </div>
         </div>
       </div><!-- /categories-tab -->

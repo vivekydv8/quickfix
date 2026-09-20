@@ -282,6 +282,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final box = Hive.box('local_notifications');
       await box.clear();
     } catch (_) {}
+    await HiveService.clearDataCache('user_notifications');
+    await NotificationService.cancelAllNotifications();
     state = AuthState(isAuthenticated: false, isLoading: false);
   }
 }

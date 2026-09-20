@@ -16,6 +16,25 @@ router.post('/categories/create', requireAdmin, settingsValidator.validateCatego
 router.post('/categories/update', requireAdmin, settingsValidator.validateCategoryUpdate, settingsController.updateCategory);
 router.delete('/categories/:id', requireAdmin, settingsController.deleteCategory);
 
+// --- SUBCATEGORY ENDPOINTS ---
+router.get('/categories/:categoryId/subcategories', publicLimiter, settingsController.getSubcategories);
+router.get('/subcategories', publicLimiter, settingsController.getSubcategories);
+router.get('/admin/subcategories', requireAdmin, settingsController.getSubcategories);
+router.post('/admin/subcategories/create', requireAdmin, settingsController.createSubcategory);
+router.post('/admin/subcategories/update', requireAdmin, settingsController.updateSubcategory);
+router.delete('/admin/subcategories/:id', requireAdmin, settingsController.deleteSubcategory);
+
+// --- CATALOG SERVICE ENDPOINTS ---
+router.get('/subcategories/:subcategoryId/services', publicLimiter, settingsController.getCatalogServices);
+router.get('/categories/:categoryId/services', publicLimiter, settingsController.getCatalogServices);
+router.get('/services', publicLimiter, settingsController.getCatalogServices);
+router.get('/services/search', publicLimiter, settingsController.searchCatalogServices);
+router.get('/services/:id', publicLimiter, settingsController.getCatalogServiceById);
+router.get('/admin/catalog-services', requireAdmin, settingsController.getCatalogServices);
+router.post('/admin/catalog-services/create', requireAdmin, settingsController.createCatalogService);
+router.post('/admin/catalog-services/update', requireAdmin, settingsController.updateCatalogService);
+router.delete('/admin/catalog-services/:id', requireAdmin, settingsController.deleteCatalogService);
+
 // --- BANNERS ENDPOINTS ---
 router.get('/banners', publicLimiter, settingsController.getBanners);
 router.get('/admin/banners', requireAdmin, settingsController.getAdminBanners);

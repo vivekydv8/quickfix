@@ -40,16 +40,10 @@ async function verifyFirebaseOtp(firebaseToken) {
     throw err;
   }
 
-  // 1. Support mock/test tokens (for test OTP 123456 / dev mode)
-  if (firebaseToken.startsWith('mock-') || firebaseToken.includes('-for-')) {
-    const phone = firebaseToken.split('-for-').pop().replace('+91', '').replace(/\s+/g, '');
-    return loginWithPhoneNumber(phone || '9999999999', '123456');
-  }
-
-  // 2. Fallback if Firebase Admin SDK is not initialized in cloud environment
   if (!admin.apps || admin.apps.length === 0) {
-    logger.warn('[AuthService] Firebase Admin SDK not initialized. Using direct phone login fallback.');
-    return loginWithPhoneNumber('9999999999', '123456');
+    const err = new Error("Firebase Admin SDK is not initialized on the server");
+    err.isFirebaseError = true;
+    throw err;
   }
 
   let decodedToken;
@@ -61,9 +55,6 @@ async function verifyFirebaseOtp(firebaseToken) {
       throw err;
     }
   } catch (err) {
-    if (firebaseToken.includes('mock')) {
-      return loginWithPhoneNumber('9999999999', '123456');
-    }
     err.isFirebaseError = true;
     throw err;
   }
@@ -143,45 +134,6 @@ async function updateProfile(userId, bodyData) {
     throw new Error('User not found');
   }
   return buildProfileResponse(user);
-}
-
-async function loginWithPhoneNumber(phoneNumber, code) {
-  if (!phoneNumber || phoneNumber.toString().trim() === '') {
-    throw new Error('Phone number is required');
-  }
-  const cleanPhone = phoneNumber.toString().replace('+91', '').replace(/\s+/g, '').trim();
-
-  let user = await User.findOne({ phone: cleanPhone });
-  if (!user) {
-    const refCode = 'QFIX' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    user = new User({
-      phone: cleanPhone,
-      name: '',
-      email: '',
-      membership: 'basic',
-      walletBalance: 0,
-      referralCode: refCode,
-      isPhoneVerified: true,
-      accountStatus: 'active',
-      memberSince: new Date()
-    });
-    await user.save();
-  } else if (!user.referralCode) {
-    user.referralCode = 'QFIX' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    await user.save();
-  }
-
-  const secret = process.env.JWT_SECRET || JWT_SECRET;
-  const token = jwt.sign(
-    { id: user._id, phone: user.phone, role: 'customer' },
-    secret,
-    { expiresIn: '30d' }
-  );
-
-  return {
-    token,
-    profile: buildProfileResponse(user)
-  };
 }
 
 async function uploadAvatar(userId, base64Image, validatedMime) {
@@ -278,7 +230,6 @@ async function deleteAccount(userId) {
 module.exports = {
   buildProfileResponse,
   verifyFirebaseOtp,
-  loginWithPhoneNumber,
   getProfile,
   updateProfile,
   uploadAvatar,
