@@ -227,10 +227,10 @@ class _AllServicesScreenState extends ConsumerState<AllServicesScreen> {
                                                     vertical: 1.5,
                                                   ),
                                                   decoration: BoxDecoration(
-                                                    color: cat.accentColor.withValues(alpha: 0.12),
+                                                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                                                     borderRadius: BorderRadius.circular(6),
                                                     border: Border.all(
-                                                      color: cat.accentColor.withValues(alpha: 0.3),
+                                                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                                                       width: 0.8,
                                                     ),
                                                   ),
@@ -239,7 +239,7 @@ class _AllServicesScreenState extends ConsumerState<AllServicesScreen> {
                                                     style: TextStyle(
                                                       fontSize: 9.5,
                                                       fontWeight: FontWeight.w700,
-                                                      color: cat.accentColor,
+                                                      color: isDark ? Colors.white70 : const Color(0xFF475569),
                                                     ),
                                                   ),
                                                 ),
