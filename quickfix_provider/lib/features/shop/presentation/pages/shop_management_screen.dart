@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quickfix_provider/core/theme/app_colors.dart';
+import 'package:quickfix_provider/features/auth/models/shop_model.dart';
 import 'package:quickfix_provider/features/auth/presentation/controllers/auth_provider.dart';
 import 'package:quickfix_provider/features/shop/presentation/controllers/shop_provider.dart';
 import 'package:quickfix_provider/core/network/connectivity_provider.dart';
@@ -11,6 +12,7 @@ import 'package:quickfix_provider/features/shop/presentation/widgets/catalog_tab
 import 'package:quickfix_provider/features/shop/presentation/widgets/gallery_tab.dart';
 import 'package:quickfix_provider/features/shop/presentation/widgets/add_service_dialog.dart';
 import 'package:quickfix_provider/features/shop/presentation/widgets/edit_service_dialog.dart';
+import 'package:quickfix_provider/features/shop/presentation/widgets/manage_categories_dialog.dart';
 
 class ShopManagementScreen extends ConsumerStatefulWidget {
   const ShopManagementScreen({super.key});
@@ -233,6 +235,13 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
     );
   }
 
+  void _showManageCategoriesDialog(ShopModel shop) {
+    showDialog(
+      context: context,
+      builder: (context) => ManageCategoriesDialog(shop: shop),
+    );
+  }
+
   void _showEditServiceDetailsDialog(Map<String, dynamic> service) {
     showDialog(
       context: context,
@@ -363,6 +372,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                 });
                 _saveOperationalHours();
               },
+              onManageCategories: () => _showManageCategoriesDialog(shop),
             ),
             CatalogTab(
               services: services,

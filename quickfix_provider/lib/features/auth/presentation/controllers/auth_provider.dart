@@ -141,6 +141,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     String? ownerEmail,
     String? estimatedServiceTime,
     String? priceRange,
+    List<String>? categories,
+    List<String>? subcategories,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
@@ -164,6 +166,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (ownerEmail != null) dataToSend['ownerEmail'] = ownerEmail;
       if (estimatedServiceTime != null) dataToSend['estimatedServiceTime'] = estimatedServiceTime;
       if (priceRange != null) dataToSend['priceRange'] = priceRange;
+      if (categories != null) dataToSend['categories'] = categories;
+      if (subcategories != null) dataToSend['subcategories'] = subcategories;
 
       final shop = await repository.updateShopDetails(dataToSend);
 

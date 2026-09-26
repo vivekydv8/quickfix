@@ -234,11 +234,13 @@ const modelDefaults = {
     reviewsCount: 0,
     isOpen: true,
     isOnline: true,
+    status: 'active',
     verificationStatus: 'approved',
     visitingCharges: 150.0,
     services: [],
     technicians: [],
-    categories: ["Cleaning"]
+    categories: ["Cleaning"],
+    subcategories: []
   }
 };
 
@@ -647,6 +649,7 @@ const ShopSchema = new mongoose.Schema({
   logoPath: { type: String, default: '' },
   logoUrl: { type: String, default: '' },
   categories: { type: [String], default: ["Cleaning"] },
+  subcategories: { type: [String], default: [] },
   imagePath: { type: String, default: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300' },
   rating: { type: Number, default: 5.0 },
   reviewsCount: { type: Number, default: 0 },

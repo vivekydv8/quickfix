@@ -247,7 +247,8 @@ async function updateHoursAndDetails(userId, updateData) {
     workingHours, holidays, serviceRadius, visitingCharges, 
     emergencyAvailable, estimatedServiceTime, priceRange,
     gst, pan, aadhaar, bankAccountNumber, ifscCode, upiId,
-    isFirstLogin, ownerPhone, ownerEmail, walletBalance, walletTransactions
+    isFirstLogin, ownerPhone, ownerEmail, walletBalance, walletTransactions,
+    categories, subcategories
   } = updateData;
 
   if (workingHours) shop.workingHours = workingHours;
@@ -271,6 +272,9 @@ async function updateHoursAndDetails(userId, updateData) {
   
   if (walletBalance !== undefined) shop.walletBalance = parseFloat(walletBalance);
   if (walletTransactions !== undefined) shop.walletTransactions = walletTransactions;
+
+  if (categories !== undefined && Array.isArray(categories)) shop.categories = categories;
+  if (subcategories !== undefined && Array.isArray(subcategories)) shop.subcategories = subcategories;
 
   await shop.save();
   return shop;

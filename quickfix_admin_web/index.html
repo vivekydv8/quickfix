@@ -804,6 +804,17 @@
                   <label>Service Categories</label>
                   <div class="checkbox-group" id="shop-form-categories"></div>
                 </div>
+                <div class="form-group" style="margin-top: 14px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <label style="margin-bottom:0;"><i class="fa-solid fa-tags" style="color:var(--primary); margin-right:4px;"></i> Service Subcategories</label>
+                    <div style="display:flex; gap:6px;">
+                      <button type="button" class="btn btn-sm btn-secondary" id="btn-select-all-shop-subcats" style="font-size:11px; padding:2px 8px;">Select All</button>
+                      <button type="button" class="btn btn-sm btn-secondary" id="btn-clear-all-shop-subcats" style="font-size:11px; padding:2px 8px;">Clear</button>
+                    </div>
+                  </div>
+                  <small style="color:var(--text-muted); font-size:11px; display:block; margin-bottom:8px;">Subcategories update dynamically based on selected Service Categories above.</small>
+                  <div class="checkbox-group" id="shop-form-subcategories" style="max-height: 220px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border-color);"></div>
+                </div>
                 <div class="form-group">
                   <label>Verification Docs URLs (one per line)</label>
                   <textarea id="shop-docs" rows="2" placeholder="https://s3.aws.com/doc-id1.jpg"></textarea>

@@ -700,6 +700,94 @@ async function fetchCategories() {
   }
 }
 
+// Fetch all subcategories for shop form if not already cached
+async function fetchAllSubcategories() {
+  if (typeof _cachedAdminSubcategories !== 'undefined' && _cachedAdminSubcategories && _cachedAdminSubcategories.length > 0) {
+    return _cachedAdminSubcategories;
+  }
+  try {
+    let res = await fetch(`${API_URL}/subcategories`);
+    if (!res.ok) res = await fetch(`${API_URL}/admin/subcategories`);
+    if (res.ok) {
+      const data = await res.json();
+      _cachedAdminSubcategories = Array.isArray(data) ? data : (data.data || []);
+      return _cachedAdminSubcategories;
+    }
+  } catch (e) {
+    console.warn('Error fetching subcategories for shop form:', e);
+  }
+  return [];
+}
+
+// Render subcategories checkboxes inside Register / Edit Shop form
+async function renderShopSubcategoriesCheckbox(preSelectedIds = null) {
+  const container = document.getElementById('shop-form-subcategories');
+  if (!container) return;
+
+  const checkedCategoryIds = [];
+  document.querySelectorAll('input[name="categories"]:checked').forEach(cb => {
+    checkedCategoryIds.push(cb.value.toLowerCase().trim());
+  });
+
+  if (checkedCategoryIds.length === 0) {
+    container.innerHTML = '<p style="font-size:11px;color:var(--text-muted);margin:4px 0;">Please select at least one Service Category above.</p>';
+    return;
+  }
+
+  // Preserve pre-selected or currently selected subcategory values
+  const selected = new Set();
+  if (preSelectedIds && Array.isArray(preSelectedIds)) {
+    preSelectedIds.forEach(id => selected.add(String(id).toLowerCase().trim()));
+  } else {
+    document.querySelectorAll('input[name="subcategories"]:checked').forEach(cb => {
+      selected.add(String(cb.value).toLowerCase().trim());
+    });
+  }
+
+  const allSubcats = await fetchAllSubcategories();
+  container.innerHTML = '';
+
+  const relevantSubcats = allSubcats.filter(sub => {
+    const parentId = (sub.categoryId || '').toLowerCase().trim();
+    return checkedCategoryIds.some(cid => 
+      cid === parentId || 
+      parentId.includes(cid) || 
+      cid.includes(parentId)
+    );
+  });
+
+  if (relevantSubcats.length === 0) {
+    container.innerHTML = '<p style="font-size:11px;color:var(--text-muted);margin:4px 0;">No subcategories configured for selected categories.</p>';
+    return;
+  }
+
+  // Group by categoryId
+  const grouped = {};
+  relevantSubcats.forEach(sub => {
+    const parent = sub.categoryId || 'other';
+    if (!grouped[parent]) grouped[parent] = [];
+    grouped[parent].push(sub);
+  });
+
+  for (const [catId, subList] of Object.entries(grouped)) {
+    const catObj = categories.find(c => c.id.toLowerCase() === catId.toLowerCase());
+    const groupTitle = catObj ? catObj.name : catId;
+
+    const groupHeader = document.createElement('div');
+    groupHeader.style.cssText = 'width:100%; font-size:11px; font-weight:700; color:var(--primary); margin:8px 0 4px 0; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:2px;';
+    groupHeader.innerHTML = `<i class="fa-solid fa-angle-right" style="font-size:9px; margin-right:4px;"></i> ${groupTitle}`;
+    container.appendChild(groupHeader);
+
+    subList.forEach(sub => {
+      const label = document.createElement('label');
+      label.style.cssText = 'display:inline-flex; align-items:center; gap:6px; font-size:12px; margin:3px 8px 3px 0; cursor:pointer;';
+      const isChecked = selected.has(sub.id.toLowerCase()) || selected.has((sub.name || '').toLowerCase());
+      label.innerHTML = `<input type="checkbox" name="subcategories" value="${sub.id}" ${isChecked ? 'checked' : ''}> <span>${sub.name}</span>`;
+      container.appendChild(label);
+    });
+  }
+}
+
 // Render categories checkbox inside Register Shop form
 function renderShopCategoriesCheckbox() {
   const container = document.getElementById('shop-form-categories');
@@ -711,6 +799,10 @@ function renderShopCategoriesCheckbox() {
       categories.forEach(c => {
         const label = document.createElement('label');
         label.innerHTML = `<input type="checkbox" name="categories" value="${c.id}"> ${c.name}`;
+        const input = label.querySelector('input');
+        input.addEventListener('change', () => {
+          renderShopSubcategoriesCheckbox();
+        });
         container.appendChild(label);
       });
     }
@@ -729,6 +821,25 @@ function renderShopCategoriesCheckbox() {
       filterSelect.appendChild(opt);
     });
   }
+
+  // Setup select all & clear buttons for shop subcategories
+  const btnSelectAllSub = document.getElementById('btn-select-all-shop-subcats');
+  if (btnSelectAllSub && !btnSelectAllSub._bound) {
+    btnSelectAllSub._bound = true;
+    btnSelectAllSub.addEventListener('click', () => {
+      document.querySelectorAll('input[name="subcategories"]').forEach(cb => cb.checked = true);
+    });
+  }
+  const btnClearAllSub = document.getElementById('btn-clear-all-shop-subcats');
+  if (btnClearAllSub && !btnClearAllSub._bound) {
+    btnClearAllSub._bound = true;
+    btnClearAllSub.addEventListener('click', () => {
+      document.querySelectorAll('input[name="subcategories"]').forEach(cb => cb.checked = false);
+    });
+  }
+
+  // Render initial subcategories based on selection
+  renderShopSubcategoriesCheckbox();
 }
 
 // Update dashboard stats cards dynamically
@@ -848,6 +959,12 @@ function renderShopsList() {
           ${(s.categories && s.categories.length > 0) 
             ? s.categories.map(c => `<span class="badge" style="background:rgba(99,102,241,0.12);color:var(--primary-solid);font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700;">${esc(c)}</span>`).join('') 
             : '<span style="color:var(--text-muted);font-weight:400;">None assigned</span>'}
+        </p>
+        <p style="font-size:11px;color:var(--text-primary);margin-top:3px;font-weight:600;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+          <span>Subcategories:</span>
+          ${(s.subcategories && s.subcategories.length > 0) 
+            ? s.subcategories.map(sub => `<span class="badge" style="background:rgba(16,185,129,0.12);color:var(--success);font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600;">${esc(sub)}</span>`).join('') 
+            : '<span style="color:var(--text-muted);font-weight:400;font-size:10px;">All / General category provider</span>'}
         </p>
         <p style="font-size:11px;color:var(--text-muted);margin-top:2px;">GST: ${maskKyc(s.gst, 4, 'GST')} &bull; PAN: ${maskKyc(s.pan, 4, 'PAN')} &bull; Aadhaar: ${maskKyc(s.aadhaar, 4, 'Aadhaar')}</p>
         <p style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Bank Acc: ${maskKyc(s.bankAccountNumber, 4, 'Bank Account')} &bull; IFSC: ${maskKyc(s.ifscCode, 4, 'IFSC')} &bull; UPI: ${maskKyc(s.upiId, 4, 'UPI ID')}</p>
@@ -1032,6 +1149,12 @@ function setupForms() {
     document.querySelectorAll('input[name="categories"]:checked').forEach(cb => {
       checkedCats.push(cb.value);
     });
+
+    // Get checked subcategories
+    const checkedSubcats = [];
+    document.querySelectorAll('input[name="subcategories"]:checked').forEach(cb => {
+      checkedSubcats.push(cb.value);
+    });
     
     const shopIdVal = document.getElementById('edit-shop-id').value;
     
@@ -1052,6 +1175,7 @@ function setupForms() {
       aadhaar: document.getElementById('shop-aadhaar').value,
       verificationDocs: document.getElementById('shop-docs').value.split('\n').filter(d => d.trim().length > 0),
       categories: checkedCats,
+      subcategories: checkedSubcats,
       estimatedServiceTime: document.getElementById('shop-estimated-time').value,
       priceRange: document.getElementById('shop-price-range').value,
       rating: parseFloat(document.getElementById('shop-rating').value) || 5.0,
@@ -1107,6 +1231,7 @@ function setupForms() {
       document.getElementById('edit-shop-id').value = "";
       document.getElementById('btn-submit-shop').innerHTML = '<i class="fa-solid fa-store"></i> Register Shop';
       document.getElementById('btn-cancel-shop-edit').style.display = 'none';
+      renderShopSubcategoriesCheckbox([]);
       
       refreshAllData();
     } catch (err) {
@@ -1120,6 +1245,7 @@ function setupForms() {
     document.getElementById('edit-shop-id').value = "";
     document.getElementById('btn-submit-shop').innerHTML = '<i class="fa-solid fa-store"></i> Register Shop';
     document.getElementById('btn-cancel-shop-edit').style.display = 'none';
+    renderShopSubcategoriesCheckbox([]);
   });
   
   // 2. Add/Edit Banner Form
@@ -1589,6 +1715,9 @@ function editShop(id) {
     const shopCats = (shop.categories || []).map(c => c.toLowerCase());
     cb.checked = shopCats.includes(val) || shopCats.some(sc => sc.includes(val) || val.includes(sc));
   });
+
+  // Render & pre-select subcategories checkboxes
+  renderShopSubcategoriesCheckbox(shop.subcategories || []);
   
   document.getElementById('btn-submit-shop').innerHTML = '<i class="fa-solid fa-save"></i> Save Shop Details';
   document.getElementById('btn-cancel-shop-edit').style.display = 'inline-flex';

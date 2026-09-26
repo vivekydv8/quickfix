@@ -26,6 +26,7 @@ class OperationalSettingsTab extends StatelessWidget {
   final Function(String, bool) onToggleWorkingDay;
   final VoidCallback onAddHolidayDialog;
   final ValueChanged<String> onRemoveHoliday;
+  final VoidCallback? onManageCategories;
 
   const OperationalSettingsTab({
     super.key,
@@ -49,6 +50,7 @@ class OperationalSettingsTab extends StatelessWidget {
     required this.onToggleWorkingDay,
     required this.onAddHolidayDialog,
     required this.onRemoveHoliday,
+    this.onManageCategories,
   });
 
   @override
@@ -59,6 +61,137 @@ class OperationalSettingsTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // ── Service Categories & Subcategories ───────────────────
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.surfaceDark : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: isDark ? 0.25 : 0.04,
+                  ),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+              border: Border.all(
+                color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'SERVICE CATEGORIES & SUBCATEGORIES',
+                      style: AppTextStyles.headingSmall(isDark).copyWith(
+                        fontSize: 11,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: onManageCategories,
+                      icon: const Icon(Icons.edit_note_rounded, size: 16),
+                      label: const Text('Manage'),
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (shop.categories.isEmpty && shop.subcategories.isEmpty)
+                  Text(
+                    'No categories or subcategories configured yet. Tap "Manage" to configure what services you offer.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.white60 : Colors.black54,
+                    ),
+                  )
+                else ...[
+                  if (shop.categories.isNotEmpty) ...[
+                    Text(
+                      'Active Categories (${shop.categories.length}):',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: shop.categories.map((c) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            c.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (shop.subcategories.isNotEmpty) ...[
+                    Text(
+                      'Offered Subcategories (${shop.subcategories.length}):',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: shop.subcategories.map((s) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: AppColors.success.withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Text(
+                            s.replaceAll('_', ' '),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.success,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
           // ── Shop Card Appearance ──────────────────────────────────
           Container(
             padding: const EdgeInsets.all(16),

@@ -76,6 +76,41 @@ class ShopManagementNotifier extends StateNotifier<ShopManagementState> {
     }
   }
 
+  Future<bool> updateCategoriesAndSubcategories({
+    required List<String> categories,
+    required List<String> subcategories,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      isSuccess: false,
+    );
+    try {
+      final success = await _ref
+          .read(authProvider.notifier)
+          .updateShopDetails(
+            categories: categories,
+            subcategories: subcategories,
+          );
+
+      if (success) {
+        state = ShopManagementState(isSuccess: true);
+        return true;
+      }
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Failed to update categories & subcategories.',
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: ErrorHandler.handle(e).message,
+      );
+      return false;
+    }
+  }
+
   Future<bool> toggleService(String serviceId, bool isEnabled) async {
     return updateServiceDetails(serviceId, {'isEnabled': isEnabled});
   }

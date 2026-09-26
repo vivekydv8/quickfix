@@ -30,6 +30,8 @@ class ShopModel {
   final String priceRange;
   final String imagePath;
   final List<dynamic> services;
+  final List<String> categories;
+  final List<String> subcategories;
 
   ShopModel({
     required this.id,
@@ -63,6 +65,8 @@ class ShopModel {
     required this.priceRange,
     required this.imagePath,
     required this.services,
+    this.categories = const [],
+    this.subcategories = const [],
   });
 
   factory ShopModel.fromJson(Map<String, dynamic> json) {
@@ -107,6 +111,12 @@ class ShopModel {
           json['imagePath']?.toString() ??
           'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300',
       services: json['services'] as List? ?? [],
+      categories: json['categories'] is List
+          ? List<String>.from((json['categories'] as List).map((e) => e.toString()))
+          : [],
+      subcategories: json['subcategories'] is List
+          ? List<String>.from((json['subcategories'] as List).map((e) => e.toString()))
+          : [],
     );
   }
 
@@ -143,6 +153,8 @@ class ShopModel {
       'priceRange': priceRange,
       'imagePath': imagePath,
       'services': services,
+      'categories': categories,
+      'subcategories': subcategories,
     };
   }
 }

@@ -10,7 +10,8 @@ async function registerShop(body) {
     name, ownerName, password, phone, latitude, longitude, categories, 
     imagePath, email, gst, pan, aadhaar, verificationDocs, visitingCharges, 
     serviceRadius, timings, verificationStatus, estimatedServiceTime, priceRange,
-    bankAccountNumber, ifscCode, upiId, ownerPhone, ownerEmail, commissionRate, walletBalance
+    bankAccountNumber, ifscCode, upiId, ownerPhone, ownerEmail, commissionRate, walletBalance,
+    subcategories, customCategories, offerBannerText, offerBannerCode, offerBannerSubtext
   } = body;
 
   const phoneStr = String(phone).trim();
@@ -53,6 +54,11 @@ async function registerShop(body) {
     latitude: parseFloat(latitude) || 26.4912,
     longitude: parseFloat(longitude) || 80.3156,
     categories: categories || ["Cleaning"],
+    subcategories: subcategories || [],
+    customCategories: customCategories || [],
+    offerBannerText: offerBannerText || 'Flat ₹100 OFF on First Booking',
+    offerBannerCode: offerBannerCode || 'QUICK100',
+    offerBannerSubtext: offerBannerSubtext || 'Use code QUICK100 at checkout • Free inspection included',
     imagePath: imagePath || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300',
     rating: 5.0,
     deliveryTimeMins: 20,
@@ -248,13 +254,24 @@ async function getNearbyShops(userLat, userLng, page, limit) {
   }
 }
 
-async function searchShops(q, userLat, userLng, page, limit, category, subcategory) {
+async function searchShops(qOrOptions, userLat, userLng, page, limit, category, subcategory) {
+  let q = qOrOptions;
+  if (typeof qOrOptions === 'object' && qOrOptions !== null) {
+    q = qOrOptions.q || qOrOptions.query || '';
+    userLat = qOrOptions.lat !== undefined ? qOrOptions.lat : userLat;
+    userLng = qOrOptions.lng !== undefined ? qOrOptions.lng : userLng;
+    page = qOrOptions.page !== undefined ? qOrOptions.page : page;
+    limit = qOrOptions.limit !== undefined ? qOrOptions.limit : limit;
+    category = qOrOptions.category !== undefined ? qOrOptions.category : category;
+    subcategory = qOrOptions.subcategory !== undefined ? qOrOptions.subcategory : subcategory;
+  }
+
   const allShops = await Shop.find({});
   const hasCoords = hasValidCoordinates(userLat, userLng);
 
-  const cleanQuery = q ? q.toLowerCase().trim() : '';
-  const cleanCat = category ? category.toLowerCase().trim() : '';
-  const cleanSubcat = subcategory ? subcategory.toLowerCase().trim() : '';
+  const cleanQuery = typeof q === 'string' ? q.toLowerCase().trim() : '';
+  const cleanCat = typeof category === 'string' ? category.toLowerCase().trim() : '';
+  const cleanSubcat = typeof subcategory === 'string' ? subcategory.toLowerCase().trim() : '';
 
   const matchedShops = allShops
     .map(shop => {
@@ -264,8 +281,8 @@ async function searchShops(q, userLat, userLng, page, limit, category, subcatego
       return shopObj;
     })
     .filter(shop => {
-      const isApproved = shop.verificationStatus === 'approved';
-      const isActive = shop.status === 'active';
+      const isApproved = shop.verificationStatus === 'approved' || !shop.verificationStatus;
+      const isActive = !shop.status || shop.status === 'active';
       const isOnline = shop.isOnline !== false;
 
       if (!isApproved || !isActive || !isOnline) return false;
@@ -284,21 +301,29 @@ async function searchShops(q, userLat, userLng, page, limit, category, subcatego
 
       // If subcategory filter is passed
       if (cleanSubcat && cleanSubcat.length > 0 && cleanSubcat !== 'all') {
-        const subcatMatched = (shop.categories || []).some(c => matchCategoryOrTerm(c, cleanSubcat)) ||
+        const subcatMatched = (shop.subcategories || []).some(s => matchCategoryOrTerm(s, cleanSubcat)) ||
+                              (shop.categories || []).some(c => matchCategoryOrTerm(c, cleanSubcat)) ||
                               (shop.customCategories || []).some(c => matchCategoryOrTerm(c, cleanSubcat)) ||
                               (shop.services && shop.services.some(s => 
                                 matchCategoryOrTerm(s.title, cleanSubcat) || 
                                 (s.bulletPoints && s.bulletPoints.some(bp => matchCategoryOrTerm(bp, cleanSubcat)))
-                              ));
+                              )) ||
+                              // Fallback: If shop operates in this main category and has not restricted to specific subcategories, it serves the whole category
+                              ((!shop.subcategories || shop.subcategories.length === 0) && cleanCat && (shop.categories || []).some(c => matchCategoryOrTerm(c, cleanCat)));
         if (!subcatMatched) return false;
       }
 
       // General query match if q is provided
       if (cleanQuery.length === 0) return true;
 
+      // If cleanQuery matches the cleanSubcat that was already validated above, avoid false negative
+      if (cleanSubcat && (cleanQuery === cleanSubcat || matchCategoryOrTerm(cleanQuery, cleanSubcat))) return true;
+
       const nameMatch = shop.name.toLowerCase().includes(cleanQuery);
+      const subcatMatch = (shop.subcategories || []).some(s => matchCategoryOrTerm(s, cleanQuery));
       const categoryMatch = (shop.categories || []).some(c => matchCategoryOrTerm(c, cleanQuery)) ||
-                            (shop.customCategories || []).some(c => matchCategoryOrTerm(c, cleanQuery));
+                            (shop.customCategories || []).some(c => matchCategoryOrTerm(c, cleanQuery)) ||
+                            subcatMatch;
       const serviceMatch = shop.services && shop.services.some(s => 
         matchCategoryOrTerm(s.title, cleanQuery) || 
         (s.bulletPoints && s.bulletPoints.some(bp => matchCategoryOrTerm(bp, cleanQuery)))
