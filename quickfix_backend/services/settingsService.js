@@ -32,11 +32,170 @@ async function submitDemand(phone, address, latitude, longitude) {
   return newDemand;
 }
 
+const AUTHORITATIVE_CATEGORIES = [
+  { id: 'electrician', name: 'Electrician', iconUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=128', isActive: true },
+  { id: 'plumbing', name: 'Plumbing', iconUrl: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=128', isActive: true },
+  { id: 'carpenter', name: 'Carpenter', iconUrl: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=128', isActive: true },
+  { id: 'ac_repair', name: 'AC Service & Repair', iconUrl: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=128', isActive: true },
+  { id: 'refrigerator_repair', name: 'Refrigerator', iconUrl: 'https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=128', isActive: true },
+  { id: 'washing_machine_repair', name: 'Washing Machine', iconUrl: 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=128', isActive: true },
+  { id: 'ro_water_purifier', name: 'RO & Purifier', iconUrl: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=128', isActive: true },
+  { id: 'mobile_repair', name: 'Mobile Repair', iconUrl: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=128', isActive: true },
+  { id: 'laptop_repair', name: 'Laptop & PC', iconUrl: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=128', isActive: true },
+  { id: 'tv_repair', name: 'TV Repair', iconUrl: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=128', isActive: true },
+  { id: 'other_services', name: 'Other Services', iconUrl: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=128', isActive: true }
+];
+
+const AUTHORITATIVE_SUBCATEGORIES = [
+  // Electrician
+  { id: 'fan_repair', categoryId: 'electrician', name: 'Fan Repair', description: 'Ceiling, exhaust and table fan repair & installation', displayOrder: 1, isActive: true },
+  { id: 'switch_socket', categoryId: 'electrician', name: 'Switch & Socket', description: 'Switchboard repair, socket replacement and wiring fixes', displayOrder: 2, isActive: true },
+  { id: 'mcb_box', categoryId: 'electrician', name: 'MCB Box & Fuse', description: 'MCB tripping, fuse wire replacement, submeter fixes', displayOrder: 3, isActive: true },
+  { id: 'inverter_service', categoryId: 'electrician', name: 'Inverter & Battery', description: 'Inverter installation, battery checkup and wiring', displayOrder: 4, isActive: true },
+
+  // Plumbing
+  { id: 'tap_mixer', categoryId: 'plumbing', name: 'Tap & Mixer', description: 'Water tap leaking, mixer replacement and installation', displayOrder: 1, isActive: true },
+  { id: 'pipe_leakage', categoryId: 'plumbing', name: 'Pipe Leakage', description: 'Concealed pipe leak, drainage block, joint repairs', displayOrder: 2, isActive: true },
+  { id: 'toilet_fitting', categoryId: 'plumbing', name: 'Toilet Fitting', description: 'Flush tank, jet spray, commode seat installation', displayOrder: 3, isActive: true },
+  { id: 'water_tank', categoryId: 'plumbing', name: 'Water Tank', description: 'Overhead tank cleaning, valve fix, motor connection', displayOrder: 4, isActive: true },
+
+  // Carpenter
+  { id: 'furniture_assembly', categoryId: 'carpenter', name: 'Furniture Assembly', description: 'Bed, wardrobe, dining table assembly & dismantling', displayOrder: 1, isActive: true },
+  { id: 'door_locks', categoryId: 'carpenter', name: 'Door & Locks', description: 'Handle replacement, latch repair, lock installation', displayOrder: 2, isActive: true },
+  { id: 'bed_wardrobe', categoryId: 'carpenter', name: 'Bed & Wardrobe', description: 'Hinges alignment, drawer channel, wood repair', displayOrder: 3, isActive: true },
+  { id: 'drill_hang', categoryId: 'carpenter', name: 'Drill & Hang', description: 'Wall shelves, mirror, frames, curtain rods mounting', displayOrder: 4, isActive: true },
+
+  // AC Service & Repair
+  { id: 'split_ac_jet', categoryId: 'ac_repair', name: 'Split AC Jet Wash', description: 'Deep foam + jet pump cleaning of indoor & outdoor units', displayOrder: 1, isActive: true },
+  { id: 'ac_gas_refill', categoryId: 'ac_repair', name: 'Gas Refill', description: 'Leak identification & R32 / R410A / R22 gas top-up', displayOrder: 2, isActive: true },
+  { id: 'ac_install', categoryId: 'ac_repair', name: 'Installation & Uninstallation', description: 'Split or window AC installation with bracket mount', displayOrder: 3, isActive: true },
+  { id: 'ac_pcb_repair', categoryId: 'ac_repair', name: 'PCB & Compressor Repair', description: 'Inverter PCB diagnostic, capacitor, relay fix', displayOrder: 4, isActive: true },
+
+  // Refrigerator
+  { id: 'fridge_single_door', categoryId: 'refrigerator_repair', name: 'Single Door Refrigerator', description: 'Cooling coil, thermostat, relay and gasket repair', displayOrder: 1, isActive: true },
+  { id: 'fridge_double_door', categoryId: 'refrigerator_repair', name: 'Double Door Frost-Free', description: 'Defrost timer, bimetal sensor, fan motor, heating coil', displayOrder: 2, isActive: true },
+  { id: 'fridge_gas', categoryId: 'refrigerator_repair', name: 'Gas Recharge', description: 'Gas leak diagnosis and refrigerant recharge', displayOrder: 3, isActive: true },
+  { id: 'fridge_compressor', categoryId: 'refrigerator_repair', name: 'Compressor Repair', description: 'Compressor replacement, relay and starter testing', displayOrder: 4, isActive: true },
+
+  // Washing Machine
+  { id: 'wm_top_load', categoryId: 'washing_machine_repair', name: 'Top Load Automatic', description: 'Pulsator, spin drum, drain valve, inlet sensor fixes', displayOrder: 1, isActive: true },
+  { id: 'wm_front_load', categoryId: 'washing_machine_repair', name: 'Front Load Automatic', description: 'Drum bearing, door seal gasket, shock absorber fix', displayOrder: 2, isActive: true },
+  { id: 'wm_semi_auto', categoryId: 'washing_machine_repair', name: 'Semi-Automatic', description: 'Wash motor, spin timer, drain bellows repair', displayOrder: 3, isActive: true },
+  { id: 'wm_motor_pcb', categoryId: 'washing_machine_repair', name: 'Motor & PCB Board', description: 'Display panel, PCB repair and drive belt replacement', displayOrder: 4, isActive: true },
+
+  // RO & Purifier
+  { id: 'ro_complete_service', categoryId: 'ro_water_purifier', name: 'Complete Service', description: 'Full membrane flush, filter cleaning and TDS check', displayOrder: 1, isActive: true },
+  { id: 'ro_membrane_filter', categoryId: 'ro_water_purifier', name: 'Membrane & Filter Change', description: 'Sediment, carbon filter, RO membrane replacement', displayOrder: 2, isActive: true },
+  { id: 'ro_pump_adapter', categoryId: 'ro_water_purifier', name: 'Pump & Adapter Fix', description: 'Booster pump repair, SV valve, SMPS power supply', displayOrder: 3, isActive: true },
+  { id: 'ro_installation', categoryId: 'ro_water_purifier', name: 'RO Installation / Shift', description: 'Wall mount uninstallation and fresh reinstallation', displayOrder: 4, isActive: true },
+
+  // Mobile Repair
+  { id: 'mob_screen', categoryId: 'mobile_repair', name: 'Screen & Display', description: 'Cracked glass, AMOLED/LCD replacement, touch issue', displayOrder: 1, isActive: true },
+  { id: 'mob_battery', categoryId: 'mobile_repair', name: 'Battery Replacement', description: 'Battery drain, swelling check and OEM battery swap', displayOrder: 2, isActive: true },
+  { id: 'mob_port_mic', categoryId: 'mobile_repair', name: 'Charging Port & Mic', description: 'Type-C/Lightning connector, microphone and speaker', displayOrder: 3, isActive: true },
+  { id: 'mob_water_damage', categoryId: 'mobile_repair', name: 'Water Damage & Motherboard', description: 'Ultrasonic cleaning, IC reballing, short circuit fix', displayOrder: 4, isActive: true },
+
+  // Laptop & PC
+  { id: 'laptop_os_format', categoryId: 'laptop_repair', name: 'OS & Software Fix', description: 'Windows/macOS install, virus removal, driver updates', displayOrder: 1, isActive: true },
+  { id: 'laptop_ssd_ram', categoryId: 'laptop_repair', name: 'SSD & RAM Upgrade', description: 'NVMe SSD boost, RAM expansion, speed optimization', displayOrder: 2, isActive: true },
+  { id: 'laptop_screen_hinge', categoryId: 'laptop_repair', name: 'Screen & Hinge Repair', description: 'Broken body fabrication, hinge fix, screen replacement', displayOrder: 3, isActive: true },
+  { id: 'laptop_thermal_clean', categoryId: 'laptop_repair', name: 'Deep Thermal Cleaning', description: 'Fan dust removal, thermal paste repasting, overheating fix', displayOrder: 4, isActive: true },
+
+  // TV Repair
+  { id: 'tv_panel', categoryId: 'tv_repair', name: 'LED Screen & Panel', description: 'Horizontal lines, black screen, backlight LED strip fix', displayOrder: 1, isActive: true },
+  { id: 'tv_sound', categoryId: 'tv_repair', name: 'Sound & Audio Fix', description: 'Speaker crackling, no audio output, motherboard audio IC', displayOrder: 2, isActive: true },
+  { id: 'tv_mounting', categoryId: 'tv_repair', name: 'Wall Mounting & Setup', description: 'Swivel / fixed wall mount installation & cable dressing', displayOrder: 3, isActive: true },
+  { id: 'tv_motherboard', categoryId: 'tv_repair', name: 'Power Board & Motherboard', description: 'Dead TV, standby red light, power surge repair', displayOrder: 4, isActive: true },
+
+  // Other Services
+  { id: 'other_chimney', categoryId: 'other_services', name: 'Kitchen Chimney', description: 'Degreasing, motor service and baffle filter cleaning', displayOrder: 1, isActive: true },
+  { id: 'other_geyser', categoryId: 'other_services', name: 'Geyser / Water Heater', description: 'Heating element, thermostat replacement, tank descaling', displayOrder: 2, isActive: true },
+  { id: 'other_microwave', categoryId: 'other_services', name: 'Microwave Oven', description: 'Magnetron repair, turntable motor, heating issue', displayOrder: 3, isActive: true },
+  { id: 'other_pest', categoryId: 'other_services', name: 'Pest Control Service', description: 'Cockroach, termite, bed bug and general disinfection', displayOrder: 4, isActive: true }
+];
+
+const AUTHORITATIVE_CATALOG_SERVICES = [
+  { id: 'srv_fan_repair', subcategoryId: 'fan_repair', categoryId: 'electrician', title: 'Ceiling Fan Repair & Capacitor Change', description: 'Winding check, capacitor swap, noise fix', price: 199, originalPrice: 299, durationText: '30 mins', visitingCharges: 100, isActive: true },
+  { id: 'srv_fan_install', subcategoryId: 'fan_repair', categoryId: 'electrician', title: 'Ceiling Fan Installation / Uninstallation', description: 'Safe hook assembly and speed regulator setup', price: 249, originalPrice: 349, durationText: '40 mins', visitingCharges: 100, isActive: true },
+  { id: 'srv_switch_board', subcategoryId: 'switch_socket', categoryId: 'electrician', title: 'Switchboard Repair / Replacement', description: 'Socket, switch, regulator replacement up to 6 switches', price: 149, originalPrice: 249, durationText: '25 mins', visitingCharges: 100, isActive: true },
+  { id: 'srv_tap_repair', subcategoryId: 'tap_mixer', categoryId: 'plumbing', title: 'Tap Repair / Spindle Replacement', description: 'Fix water dripping, internal washer and spindle change', price: 149, originalPrice: 249, durationText: '25 mins', visitingCharges: 100, isActive: true },
+  { id: 'srv_pipe_leak', subcategoryId: 'pipe_leakage', categoryId: 'plumbing', title: 'Drain Pipe Leakage & Blockage Clear', description: 'Under-sink pipe, traps and minor drainage clearing', price: 299, originalPrice: 449, durationText: '45 mins', visitingCharges: 100, isActive: true },
+  { id: 'srv_ac_jet_wash', subcategoryId: 'split_ac_jet', categoryId: 'ac_repair', title: 'Deep Jet Pump AC Servicing', description: 'High pressure foam wash for indoor & outdoor units with jacket cover', price: 499, originalPrice: 799, durationText: '60 mins', visitingCharges: 150, isActive: true },
+  { id: 'srv_ac_gas', subcategoryId: 'ac_gas_refill', categoryId: 'ac_repair', title: 'AC Gas Refill & Leak Fix', description: 'Full vacuuming, nitrogen leak test and refrigerant charging', price: 1799, originalPrice: 2499, durationText: '60 mins', visitingCharges: 150, isActive: true },
+  { id: 'srv_ro_service', subcategoryId: 'ro_complete_service', categoryId: 'ro_water_purifier', title: 'Standard RO Service & Inspection', description: 'Sediment flush, carbon check, TDS calibration & pump check', price: 299, originalPrice: 499, durationText: '45 mins', visitingCharges: 100, isActive: true },
+  { id: 'srv_mob_screen', subcategoryId: 'mob_screen', categoryId: 'mobile_repair', title: 'Smartphone Display Replacement', description: 'Quality screen replacement with testing and fitment warranty', price: 1499, originalPrice: 2199, durationText: '60 mins', visitingCharges: 150, isActive: true },
+  { id: 'srv_laptop_clean', subcategoryId: 'laptop_thermal_clean', categoryId: 'laptop_repair', title: 'Laptop Deep Clean & Thermal Repaste', description: 'Heatsink dust clearing, arctic MX-4 thermal paste application', price: 499, originalPrice: 899, durationText: '45 mins', visitingCharges: 150, isActive: true }
+];
+
+let _hasSyncedCatalog = false;
+
+async function ensureAuthoritativeCatalogData() {
+  if (_hasSyncedCatalog) return;
+  try {
+    // 1. Clean up legacy obsolete categories if present
+    const obsoleteIds = ['toilet_cleaning', 'washing_repair', 'ro_repair'];
+    await Category.deleteMany({ id: { $in: obsoleteIds } });
+
+    // 2. Upsert the 11 Authoritative Categories
+    for (const cat of AUTHORITATIVE_CATEGORIES) {
+      const existing = await Category.findOne({ id: cat.id });
+      if (!existing) {
+        await Category.create(cat);
+      } else {
+        let changed = false;
+        if (existing.name !== cat.name) {
+          existing.name = cat.name;
+          changed = true;
+        }
+        if (!existing.iconUrl) {
+          existing.iconUrl = cat.iconUrl;
+          changed = true;
+        }
+        if (existing.isActive !== true) {
+          existing.isActive = true;
+          changed = true;
+        }
+        if (changed) await existing.save();
+      }
+    }
+
+    // 3. Ensure subcategories are seeded
+    const subCount = await Subcategory.countDocuments({});
+    if (subCount === 0 || subCount < 10) {
+      for (const sub of AUTHORITATIVE_SUBCATEGORIES) {
+        const existing = await Subcategory.findOne({ id: sub.id });
+        if (!existing) {
+          await Subcategory.create(sub);
+        }
+      }
+    }
+
+    // 4. Ensure catalog services are seeded
+    const srvCount = await CatalogService.countDocuments({});
+    if (srvCount === 0) {
+      for (const srv of AUTHORITATIVE_CATALOG_SERVICES) {
+        const existing = await CatalogService.findOne({ id: srv.id });
+        if (!existing) {
+          await CatalogService.create(srv);
+        }
+      }
+    }
+
+    _hasSyncedCatalog = true;
+  } catch (err) {
+    logger.error(`[settingsService] Error ensuring authoritative catalog data: ${err.message}`);
+  }
+}
+
+// Perform initial seed check asynchronously
+ensureAuthoritativeCatalogData();
+
 async function getDemands() {
   return Demand.find({});
 }
 
 async function getCategories() {
+  await ensureAuthoritativeCatalogData();
   return Category.find({});
 }
 
@@ -85,6 +244,7 @@ async function deleteCategory(id) {
 
 // --- SUBCATEGORY SERVICES ---
 async function getSubcategories(categoryId, includeInactive = false) {
+  await ensureAuthoritativeCatalogData();
   let query = {};
   if (categoryId) {
     query.categoryId = categoryId.toLowerCase();
@@ -135,6 +295,7 @@ async function deleteSubcategory(id) {
 
 // --- CATALOG SERVICE METHODS ---
 async function getCatalogServices(subcategoryId, categoryId, includeInactive = false) {
+  await ensureAuthoritativeCatalogData();
   let query = {};
   if (subcategoryId) query.subcategoryId = subcategoryId;
   if (categoryId) query.categoryId = categoryId.toLowerCase();

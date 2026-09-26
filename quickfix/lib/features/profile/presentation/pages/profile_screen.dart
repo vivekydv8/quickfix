@@ -55,19 +55,53 @@ class ProfileScreen extends ConsumerWidget {
       orElse: () => '...',
     );
 
-    return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.backgroundDark
-          : AppColors.backgroundLight,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // ---------- Gradient Header ----------
-          SliverAppBar(
-            expandedHeight: 220,
-            pinned: true,
-            backgroundColor: AppColors.primary,
-            actions: [
+    return PopScope(
+      canPop: Navigator.of(context).canPop(),
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          ref.read(currentNavIndexProvider.notifier).state = 0;
+          context.go('/home');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: isDark
+            ? AppColors.backgroundDark
+            : AppColors.backgroundLight,
+        body: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // ---------- Gradient Header ----------
+            SliverAppBar(
+              expandedHeight: 220,
+              pinned: true,
+              backgroundColor: AppColors.primary,
+              iconTheme: const IconThemeData(color: Colors.white),
+              leading: IconButton(
+                icon: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                tooltip: 'Back',
+                onPressed: () {
+                  AppHaptics.lightTap();
+                  if (Navigator.of(context).canPop()) {
+                    context.pop();
+                  } else {
+                    ref.read(currentNavIndexProvider.notifier).state = 0;
+                    context.go('/home');
+                  }
+                },
+              ),
+              actions: [
               IconButton(
                 icon: Icon(
                   isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
@@ -563,7 +597,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _avatarPlaceholder(String name) {

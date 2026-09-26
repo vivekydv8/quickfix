@@ -260,18 +260,18 @@ class _AllServicesScreenState extends ConsumerState<AllServicesScreen> {
                                     ),
                                     // Open Subcategories Arrow Pill
                                     Container(
-                                      width: 32,
-                                      height: 32,
+                                      width: 34,
+                                      height: 34,
                                       decoration: BoxDecoration(
                                         color: isDark
                                             ? const Color(0xFF262635)
                                             : const Color(0xFFF1F5F9),
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.chevron_right_rounded,
                                         size: 20,
-                                        color: AppColors.primary,
+                                        color: isDark ? Colors.white : AppColors.primary,
                                       ),
                                     ),
                                   ],
@@ -284,31 +284,37 @@ class _AllServicesScreenState extends ConsumerState<AllServicesScreen> {
                                     spacing: 6,
                                     runSpacing: 6,
                                     children: cat.sampleSubcategories.map((subName) {
-                                      return Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 3.5,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: isDark
-                                              ? const Color(0xFF1E2433)
-                                              : const Color(0xFFF8FAFC),
-                                          borderRadius: BorderRadius.circular(8),
-                                          border: Border.all(
-                                            color: isDark
-                                                ? const Color(0xFF2D3748)
-                                                : const Color(0xFFE2E8F0),
-                                            width: 0.8,
+                                      return GestureDetector(
+                                        onTap: () {
+                                          AppHaptics.lightTap();
+                                          CategorySubcategoriesSheet.show(context, cat);
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 9,
+                                            vertical: 4,
                                           ),
-                                        ),
-                                        child: Text(
-                                          subName,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500,
+                                          decoration: BoxDecoration(
                                             color: isDark
-                                                ? Colors.white70
-                                                : const Color(0xFF475569),
+                                                ? const Color(0xFF1E2433)
+                                                : const Color(0xFFF8FAFC),
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color: isDark
+                                                  ? const Color(0xFF2D3748)
+                                                  : const Color(0xFFE2E8F0),
+                                              width: 0.8,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            subName,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                              color: isDark
+                                                  ? Colors.white70
+                                                  : const Color(0xFF475569),
+                                            ),
                                           ),
                                         ),
                                       );

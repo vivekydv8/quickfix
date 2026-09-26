@@ -2579,34 +2579,32 @@ async function deleteCategory(id) {
 
 // Switch between Main Categories, Subcategories, and Catalog Services tabs
 function switchCatalogSubTab(tab) {
-  const btnCats = document.getElementById('btn-subtab-categories');
-  const btnSubcats = document.getElementById('btn-subtab-subcategories');
-  const btnSrvs = document.getElementById('btn-subtab-services');
+  const btnCats = document.getElementById('btn-subtab-categories') || document.getElementById('btn-show-categories');
+  const btnSubcats = document.getElementById('btn-subtab-subcategories') || document.getElementById('btn-show-subcategories');
+  const btnSrvs = document.getElementById('btn-subtab-services') || document.getElementById('btn-show-catalogservices');
 
   const secCats = document.getElementById('catalog-section-categories');
   const secSubcats = document.getElementById('catalog-section-subcategories');
   const secSrvs = document.getElementById('catalog-section-services');
 
-  if (!btnCats || !btnSubcats || !btnSrvs) return;
-
-  btnCats.className = 'btn btn-secondary';
-  btnSubcats.className = 'btn btn-secondary';
-  btnSrvs.className = 'btn btn-secondary';
+  if (btnCats) btnCats.className = 'btn btn-secondary btn-sm';
+  if (btnSubcats) btnSubcats.className = 'btn btn-secondary btn-sm';
+  if (btnSrvs) btnSrvs.className = 'btn btn-secondary btn-sm';
 
   if (secCats) secCats.style.display = 'none';
   if (secSubcats) secSubcats.style.display = 'none';
   if (secSrvs) secSrvs.style.display = 'none';
 
   if (tab === 'categories') {
-    btnCats.className = 'btn btn-primary';
+    if (btnCats) btnCats.className = 'btn btn-primary btn-sm';
     if (secCats) secCats.style.display = 'grid';
     loadCategories();
   } else if (tab === 'subcategories') {
-    btnSubcats.className = 'btn btn-primary';
+    if (btnSubcats) btnSubcats.className = 'btn btn-primary btn-sm';
     if (secSubcats) secSubcats.style.display = 'grid';
     loadAdminSubcategories();
   } else if (tab === 'services') {
-    btnSrvs.className = 'btn btn-primary';
+    if (btnSrvs) btnSrvs.className = 'btn btn-primary btn-sm';
     if (secSrvs) secSrvs.style.display = 'grid';
     populateSubcategoryDropdown();
     loadAdminCatalogServices();
@@ -2632,8 +2630,12 @@ async function loadAdminSubcategories() {
   }
 
   try {
-    const url = `${API_URL}/admin/subcategories${catFilter ? `?categoryId=${catFilter}` : ''}`;
-    const res = await fetch(url);
+    let url = `${API_URL}/admin/subcategories${catFilter ? `?categoryId=${catFilter}` : ''}`;
+    let res = await fetch(url);
+    if (!res.ok) {
+      url = `${API_URL}/subcategories${catFilter ? `?categoryId=${catFilter}` : ''}`;
+      res = await fetch(url);
+    }
     const data = await res.json();
     const list = Array.isArray(data) ? data : (data.data || []);
     _cachedAdminSubcategories = list;

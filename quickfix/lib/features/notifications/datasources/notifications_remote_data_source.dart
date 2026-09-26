@@ -26,7 +26,7 @@ class NotificationsRemoteDataSource {
             .map((e) => NotificationItem.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
       }
-      rethrow;
+      return [];
     }
   }
 

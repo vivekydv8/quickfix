@@ -54,9 +54,17 @@ async function getNotifications(req) {
     query.$and.push({ deletedBy: { $ne: customerId } });
   }
 
-  let results = await Notification.find(query);
-  if (results && typeof results.sort === 'function') {
-    results = await results.sort({ createdAt: -1 });
+  let results;
+  try {
+    const queryObj = Notification.find(query);
+    if (queryObj && typeof queryObj.sort === 'function') {
+      results = await queryObj.sort({ createdAt: -1 });
+    } else {
+      results = await queryObj;
+    }
+  } catch (err) {
+    console.error('Error fetching notifications from DB:', err);
+    results = [];
   }
 
   const list = Array.isArray(results) ? results : [];
