@@ -839,7 +839,7 @@
                 </div>
                 <div class="form-group">
                   <label for="shop-custom-categories">Custom Category Filter Chips (Comma-separated)</label>
-                  <input type="text" id="shop-custom-categories" placeholder="e.g. All, Repair, Installation, Inspection, Cleaning">
+                  <input type="text" id="shop-custom-categories" placeholder="e.g. All, Repair, Installation, Inspection, Emergency">
                   <small style="color:#64748b; font-size:11px;">Specify custom category chips for this shop (e.g. "All, Repair, Installation, Inspection"). Leave blank for auto-detected categories.</small>
                 </div>
               </div>
@@ -894,11 +894,11 @@
             <form id="category-form">
               <div class="form-group">
                 <label for="cat-id">Category ID (Lowercase slug)</label>
-                <input type="text" id="cat-id" required placeholder="e.g. cleaning">
+                <input type="text" id="cat-id" required placeholder="e.g. ac_repair">
               </div>
               <div class="form-group">
                 <label for="cat-name">Display Name</label>
-                <input type="text" id="cat-name" required placeholder="e.g. Deep Cleaning">
+                <input type="text" id="cat-name" required placeholder="e.g. AC Repair">
               </div>
               <div class="form-group">
                 <label>Category Icon Image</label>
@@ -2452,7 +2452,7 @@
     <form id="promo-form">
       <input type="hidden" id="edit-promo-id">
       <div class="form-group"><label for="promo-title">Promotion Title</label><input type="text" id="promo-title" required placeholder="e.g. Monsoon Special"></div>
-      <div class="form-group"><label for="promo-subtitle">Subtitle / Highlights</label><input type="text" id="promo-subtitle" required placeholder="Upto 50% OFF on Deep Cleaning"></div>
+      <div class="form-group"><label for="promo-subtitle">Subtitle / Highlights</label><input type="text" id="promo-subtitle" required placeholder="Upto 50% OFF on Top Services"></div>
       <div class="form-group"><label for="promo-desc">Description</label><input type="text" id="promo-desc" placeholder="e.g. Book now to get extra benefits"></div>
       <div class="form-row">
         <div class="form-group"><label for="promo-pct">Offer Percentage Display</label><input type="text" id="promo-pct" placeholder="50% OFF"></div>
@@ -2464,13 +2464,17 @@
           <select id="promo-cta">
             <option value="No Action">No Action</option>
             <option value="Open Category">Open Category</option>
+            <option value="Open Subcategory">Open Subcategory</option>
             <option value="Open Specific Service">Open Specific Service</option>
             <option value="Open Shop">Open Shop</option>
             <option value="Open Internal Screen">Open Internal Screen</option>
             <option value="Open External URL">Open External URL</option>
           </select>
         </div>
-        <div class="form-group"><label for="promo-cta-val">CTA Action Value</label><input type="text" id="promo-cta-val" placeholder="e.g. cleaning, /wallet"></div>
+        <div class="form-group" id="promo-cta-val-container">
+          <label for="promo-cta-val">CTA Action Value</label>
+          <input type="text" id="promo-cta-val" placeholder="Select or enter value">
+        </div>
       </div>
       <div class="form-group"><label for="promo-image">Banner Thumbnail URL</label><input type="url" id="promo-image" placeholder="https://images.unsplash.com/…"></div>
       <div class="form-row">
@@ -2516,7 +2520,7 @@
             <option value="water_drop_outlined">Water Drop</option>
             <option value="flash_on_outlined">Flash</option>
             <option value="discount_outlined">Discount Tag</option>
-            <option value="cleaning_services_outlined">Cleaning</option>
+            <option value="home_repair_service_outlined">Home Repair</option>
             <option value="plumbing_outlined">Plumbing</option>
             <option value="bolt_outlined">Bolt</option>
             <option value="star">Star</option>
@@ -2530,13 +2534,17 @@
           <select id="special-cta">
             <option value="No Action">No Action</option>
             <option value="Open Category">Open Category</option>
+            <option value="Open Subcategory">Open Subcategory</option>
             <option value="Open Specific Service">Open Specific Service</option>
             <option value="Open Shop">Open Shop</option>
             <option value="Open Internal Screen">Open Internal Screen</option>
             <option value="Open External URL">Open External URL</option>
           </select>
         </div>
-        <div class="form-group"><label for="special-cta-val">CTA Action Value</label><input type="text" id="special-cta-val" placeholder="e.g. plumbing, /wallet"></div>
+        <div class="form-group" id="special-cta-val-container">
+          <label for="special-cta-val">CTA Action Value</label>
+          <input type="text" id="special-cta-val" placeholder="Select or enter value">
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group"><label for="special-priority">Priority</label><input type="number" id="special-priority" value="0"></div>
@@ -2632,16 +2640,28 @@
       <div class="form-section">
         <div class="form-section-title"><i class="fa-solid fa-circle-info"></i> Section Info</div>
         <div class="form-row">
-          <div class="form-group"><label for="custom-section-title">Section Title <small style="font-weight:400;color:var(--text-muted);">(Optional)</small></label><input type="text" id="custom-section-title" placeholder="e.g. Cleaning Essentials"></div>
-          <div class="form-group"><label for="custom-section-subtitle">Subtitle / Description</label><input type="text" id="custom-section-subtitle" placeholder="Top cleaning services this month"></div>
+          <div class="form-group"><label for="custom-section-title">Section Title <small style="font-weight:400;color:var(--text-muted);">(Optional)</small></label><input type="text" id="custom-section-title" placeholder="e.g. AC &amp; Home Repair Specials"></div>
+          <div class="form-group"><label for="custom-section-subtitle">Subtitle / Description</label><input type="text" id="custom-section-subtitle" placeholder="Top repair &amp; servicing offers this month"></div>
         </div>
         <div class="form-row">
           <div class="form-group"><label for="custom-section-priority">Display Priority <small>(lower = higher on page)</small></label><input type="number" id="custom-section-priority" value="99" min="0"></div>
           <div class="form-group"><label for="custom-section-active">Visibility</label><select id="custom-section-active"><option value="true">Active (Visible)</option><option value="false">Inactive (Hidden)</option></select></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label for="custom-section-see-all-action">"See All" Button Opens</label><select id="custom-section-see-all-action"><option value="Open Category">Open Category</option><option value="Open Shop">Open Shop</option><option value="Open Internal Screen">Open Internal Screen</option><option value="No Action">No Action (Hide button)</option></select></div>
-          <div class="form-group"><label for="custom-section-see-all-value">"See All" Action Value</label><input type="text" id="custom-section-see-all-value" placeholder="e.g. cleaning or shop-id"></div>
+          <div class="form-group">
+            <label for="custom-section-see-all-action">"See All" Button Opens</label>
+            <select id="custom-section-see-all-action">
+              <option value="Open Category">Open Category</option>
+              <option value="Open Subcategory">Open Subcategory</option>
+              <option value="Open Shop">Open Shop</option>
+              <option value="Open Internal Screen">Open Internal Screen</option>
+              <option value="No Action">No Action (Hide button)</option>
+            </select>
+          </div>
+          <div class="form-group" id="custom-section-see-all-val-container">
+            <label for="custom-section-see-all-value">"See All" Target Value</label>
+            <input type="text" id="custom-section-see-all-value" placeholder="Select or enter value">
+          </div>
         </div>
       </div>
 
@@ -2672,8 +2692,21 @@
           <div class="form-group"><label for="custom-section-banner-button-text">Banner Button Text <small style="font-weight:400;color:var(--text-muted);">(Optional - e.g. "Explore now", leave empty to hide)</small></label><input type="text" id="custom-section-banner-button-text" placeholder="e.g. Explore now (or leave blank to hide button)"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label for="custom-section-banner-action">Banner Click Opens</label><select id="custom-section-banner-action"><option value="Open Category">Open Category</option><option value="Open Shop">Open Shop</option><option value="Open Internal Screen">Open Internal Screen</option><option value="Open External URL">Open External URL</option><option value="No Action">No Action</option></select></div>
-          <div class="form-group"><label for="custom-section-banner-value">Banner Action Value</label><input type="text" id="custom-section-banner-value" placeholder="e.g. cleaning or shop-id"></div>
+          <div class="form-group">
+            <label for="custom-section-banner-action">Banner Click Opens</label>
+            <select id="custom-section-banner-action">
+              <option value="Open Category">Open Category</option>
+              <option value="Open Subcategory">Open Subcategory</option>
+              <option value="Open Shop">Open Shop</option>
+              <option value="Open Internal Screen">Open Internal Screen</option>
+              <option value="Open External URL">Open External URL</option>
+              <option value="No Action">No Action</option>
+            </select>
+          </div>
+          <div class="form-group" id="custom-section-banner-val-container">
+            <label for="custom-section-banner-value">Banner Target Value</label>
+            <input type="text" id="custom-section-banner-value" placeholder="Select or enter value">
+          </div>
         </div>
       </div>
 
@@ -2767,6 +2800,6 @@
 
 <script src="security.js"></script>
 
-<script src="app.js?v=3.1.0"></script>
+<script src="app.js?v=3.2.0"></script>
 </body>
 </html>

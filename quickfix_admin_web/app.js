@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const pass = document.getElementById('cred-temp-pass').textContent;
       navigator.clipboard.writeText(`Shop ID: ${shopId}\nTemp Password: ${pass}`)
         .then(() => showToast('Credentials copied to clipboard', 'success'))
-        .catch(() => showToast('Copy failed â€” please copy manually', 'error'));
+        .catch(() => showToast('Copy failed — please copy manually', 'error'));
     });
   }
 
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€ SIDEBAR COLLAPSE & MOBILE NAV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── SIDEBAR COLLAPSE & MOBILE NAV ──────────────────────
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function setupSidebarCollapse() {
   const sidebar = document.getElementById('sidebar');
@@ -309,7 +309,7 @@ function setupMobileNav() {
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€ BREADCRUMB UPDATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── BREADCRUMB UPDATE ──────────────────────────────────
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function updateBreadcrumb(tabName) {
   const el = document.getElementById('tab-title');
@@ -317,7 +317,7 @@ function updateBreadcrumb(tabName) {
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€ GLOBAL SEARCH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── GLOBAL SEARCH ──────────────────────────────────────
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function setupGlobalSearch() {
   const searchInput = document.getElementById('global-search');
@@ -350,7 +350,7 @@ function setupGlobalSearch() {
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€ CONFIRM MODAL (replaces window.confirm) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CONFIRM MODAL (replaces window.confirm) ────────────
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 let _confirmCallback = null;
 
@@ -403,7 +403,7 @@ function showCredentialsModal(shopDisplayId, tempPassword) {
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€ PAY SUB-TABS SETUP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── PAY SUB-TABS SETUP ────────────────────────────────
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function setupPaySubtabs() {
   // Already wired via onclick="switchPaySubtab(this)" in HTML
@@ -419,7 +419,7 @@ function switchPaySubtab(btn) {
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€ TABLE SEARCH HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── TABLE SEARCH HELPERS ──────────────────────────────
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function filterBookingsTable() {
   const q = (document.getElementById('bookings-search')?.value || '').toLowerCase();
@@ -1528,7 +1528,7 @@ function setupForms() {
         const data = await res.json();
         if (data.success) {
           showToast('Wallet balance adjusted successfully', 'success');
-          await logAdminActivity('Adjust Wallet', bodyData.userId, `${bodyData.type} â‚¹${bodyData.amount} for ${bodyData.title}`);
+          await logAdminActivity('Adjust Wallet', bodyData.userId, `${bodyData.type} ₹${bodyData.amount} for ${bodyData.title}`);
           document.getElementById('wallet-modal').classList.remove('active');
           loadCustomers();
         }
@@ -1699,7 +1699,7 @@ function editShop(id) {
   document.getElementById('shop-wallet-balance').value = shop.walletBalance !== undefined ? shop.walletBalance : 0.0;
   document.getElementById('shop-docs').value = (shop.verificationDocs || []).join('\n');
   document.getElementById('shop-estimated-time').value = shop.estimatedServiceTime || '20 mins';
-  document.getElementById('shop-price-range').value = shop.priceRange || 'â‚¹â‚¹';
+  document.getElementById('shop-price-range').value = shop.priceRange || '₹₹';
   document.getElementById('shop-rating').value = (shop.rating || 5.0).toFixed(1);
   document.getElementById('shop-reviews-count').value = shop.reviewsCount || 0;
   
@@ -3149,8 +3149,8 @@ function loadPaymentStats() {
     }
   });
   
-  payComm.textContent = `â‚¹${platformCommission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-  payDue.textContent = `â‚¹${settlementsDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  payComm.textContent = `₹${platformCommission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  payDue.textContent = `₹${settlementsDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
   
   // Populate settlements table
   Object.entries(shopSettlementMap).forEach(([shopId, s]) => {
@@ -3164,11 +3164,11 @@ function loadPaymentStats() {
         <td>${shopId}</td>
         <td><strong>${s.name}</strong></td>
         <td>${s.phone}</td>
-        <td>â‚¹${s.visiting}</td>
+        <td>₹${s.visiting}</td>
         <td>${s.bookingsCount} Completed</td>
-        <td style="font-weight:600;">â‚¹${s.grossAmount.toFixed(2)}</td>
-        <td style="color:var(--success); font-weight:600;">â‚¹${earned.toFixed(2)}</td>
-        <td style="color:var(--warning); font-weight:600;">â‚¹${commission.toFixed(2)}</td>
+        <td style="font-weight:600;">₹${s.grossAmount.toFixed(2)}</td>
+        <td style="color:var(--success); font-weight:600;">₹${earned.toFixed(2)}</td>
+        <td style="color:var(--warning); font-weight:600;">₹${commission.toFixed(2)}</td>
       `;
       setTbody.appendChild(tr);
     }
@@ -3189,7 +3189,7 @@ function loadPaymentStats() {
         tr.innerHTML = `
           <td>${t.id || 'TX-'+txIndex}</td>
           <td>${u.name || u.phone}</td>
-          <td style="font-weight:600;">â‚¹${t.amount}</td>
+          <td style="font-weight:600;">₹${t.amount}</td>
           <td><span class="badge ${badgeClass}">${t.type}</span></td>
           <td>${t.title || 'Escrow adjustment'}</td>
         `;
@@ -3240,22 +3240,22 @@ async function refreshPaymentDashboard() {
     if (!data.today) return;
 
     // Update KPI cards
-    document.getElementById('pay-kpi-today-gross').textContent = `â‚¹${(data.today.grossRevenue || 0).toFixed(2)}`;
-    document.getElementById('pay-kpi-today-comm').textContent = `â‚¹${(data.today.commissionEarned || 0).toFixed(2)}`;
-    document.getElementById('pay-kpi-total-comm').textContent = `â‚¹${(data.overall.totalCommissionEarned || 0).toFixed(2)}`;
-    document.getElementById('pay-kpi-outstanding-comm').textContent = `â‚¹${(data.overall.outstandingCommission || 0).toFixed(2)}`;
-    document.getElementById('pay-kpi-pending-set').textContent = `â‚¹${(data.settlements.pendingAmount || 0).toFixed(2)}`;
-    document.getElementById('pay-kpi-total-settled').textContent = `â‚¹${(data.settlements.totalSettled || 0).toFixed(2)}`;
+    document.getElementById('pay-kpi-today-gross').textContent = `₹${(data.today.grossRevenue || 0).toFixed(2)}`;
+    document.getElementById('pay-kpi-today-comm').textContent = `₹${(data.today.commissionEarned || 0).toFixed(2)}`;
+    document.getElementById('pay-kpi-total-comm').textContent = `₹${(data.overall.totalCommissionEarned || 0).toFixed(2)}`;
+    document.getElementById('pay-kpi-outstanding-comm').textContent = `₹${(data.overall.outstandingCommission || 0).toFixed(2)}`;
+    document.getElementById('pay-kpi-pending-set').textContent = `₹${(data.settlements.pendingAmount || 0).toFixed(2)}`;
+    document.getElementById('pay-kpi-total-settled').textContent = `₹${(data.settlements.totalSettled || 0).toFixed(2)}`;
 
     // Update top bar commission stats
     const globalRateEl = document.getElementById('pay-global-rate');
     if (globalRateEl) globalRateEl.textContent = 'Per-Shop Config';
     const outstandingEl = document.getElementById('pay-outstanding-comm');
-    if (outstandingEl) outstandingEl.textContent = `â‚¹${(data.overall.outstandingCommission || 0).toFixed(2)}`;
+    if (outstandingEl) outstandingEl.textContent = `₹${(data.overall.outstandingCommission || 0).toFixed(2)}`;
     const platformCommEl = document.getElementById('pay-platform-comm');
-    if (platformCommEl) platformCommEl.textContent = `â‚¹${(data.overall.totalCommissionEarned || 0).toFixed(2)}`;
+    if (platformCommEl) platformCommEl.textContent = `₹${(data.overall.totalCommissionEarned || 0).toFixed(2)}`;
     const providerDueEl = document.getElementById('pay-provider-due');
-    if (providerDueEl) providerDueEl.textContent = `â‚¹${(data.overall.totalProviderEarnings || 0).toFixed(2)}`;
+    if (providerDueEl) providerDueEl.textContent = `₹${(data.overall.totalProviderEarnings || 0).toFixed(2)}`;
 
     // Settlement badge
     const badge = document.getElementById('pay-queue-badge');
@@ -3275,9 +3275,9 @@ async function refreshPaymentDashboard() {
       const cash = (data.overall.cashCollection || 0);
       const online = (data.overall.onlineCollection || 0);
       methodSplit.innerHTML = `
-        <div class="set-row"><span>ðŸ’µ Cash Payments</span><strong style="color:var(--warning);">â‚¹${cash.toFixed(2)}</strong></div>
-        <div class="set-row"><span>ðŸ’³ Online Payments</span><strong style="color:var(--success);">â‚¹${online.toFixed(2)}</strong></div>
-        <div class="set-row"><span>ðŸ“Š Total Gross Volume</span><strong>â‚¹${total.toFixed(2)}</strong></div>
+        <div class="set-row"><span>ðŸ’µ Cash Payments</span><strong style="color:var(--warning);">₹${cash.toFixed(2)}</strong></div>
+        <div class="set-row"><span>ðŸ’³ Online Payments</span><strong style="color:var(--success);">₹${online.toFixed(2)}</strong></div>
+        <div class="set-row"><span>ðŸ“Š Total Gross Volume</span><strong>₹${total.toFixed(2)}</strong></div>
       `;
     }
 
@@ -3287,18 +3287,18 @@ async function refreshPaymentDashboard() {
       const outstanding = (data.overall.outstandingCommission || 0);
       const collected = totalComm - outstanding;
       commStatus.innerHTML = `
-        <div class="set-row"><span>âœ… Commission Collected</span><strong style="color:var(--success);">â‚¹${collected.toFixed(2)}</strong></div>
-        <div class="set-row"><span>âš ï¸ Outstanding (Cash)</span><strong style="color:var(--warning);">â‚¹${outstanding.toFixed(2)}</strong></div>
-        <div class="set-row"><span>ðŸ“Š Total Commission</span><strong>â‚¹${totalComm.toFixed(2)}</strong></div>
+        <div class="set-row"><span>✅ Commission Collected</span><strong style="color:var(--success);">₹${collected.toFixed(2)}</strong></div>
+        <div class="set-row"><span>âš ï¸ Outstanding (Cash)</span><strong style="color:var(--warning);">₹${outstanding.toFixed(2)}</strong></div>
+        <div class="set-row"><span>ðŸ“Š Total Commission</span><strong>₹${totalComm.toFixed(2)}</strong></div>
       `;
     }
 
     const settleOverview = document.getElementById('pay-settlement-overview');
     if (settleOverview) {
       settleOverview.innerHTML = `
-        <div class="set-row"><span>â³ Pending Requests</span><strong style="color:var(--warning);">${data.settlements.pendingCount || 0} (â‚¹${(data.settlements.pendingAmount || 0).toFixed(2)})</strong></div>
-        <div class="set-row"><span>âœ… Completed</span><strong style="color:var(--success);">${data.settlements.completedCount || 0}</strong></div>
-        <div class="set-row"><span>ðŸ’¸ Total Settled</span><strong>â‚¹${(data.settlements.totalSettled || 0).toFixed(2)}</strong></div>
+        <div class="set-row"><span>â³ Pending Requests</span><strong style="color:var(--warning);">${data.settlements.pendingCount || 0} (₹${(data.settlements.pendingAmount || 0).toFixed(2)})</strong></div>
+        <div class="set-row"><span>✅ Completed</span><strong style="color:var(--success);">${data.settlements.completedCount || 0}</strong></div>
+        <div class="set-row"><span>ðŸ’¸ Total Settled</span><strong>₹${(data.settlements.totalSettled || 0).toFixed(2)}</strong></div>
       `;
     }
 
@@ -3313,7 +3313,7 @@ async function refreshPaymentDashboard() {
           <td><strong>${p.shopName}</strong></td>
           <td style="font-size:11px;color:var(--text-muted);">${p.shopId}</td>
           <td>${p.commissionRate}%</td>
-          <td style="font-weight:700; color: ${isNegative ? 'var(--danger)' : 'var(--success)'};">â‚¹${p.walletBalance.toFixed(2)}${isNegative ? ' âš ï¸' : ''}</td>
+          <td style="font-weight:700; color: ${isNegative ? 'var(--danger)' : 'var(--success)'};">₹${p.walletBalance.toFixed(2)}${isNegative ? ' âš ï¸' : ''}</td>
           <td>${isNegative ? '<span class="badge badge-cancelled">Commission Due</span>' : '<span class="badge badge-completed">OK</span>'}</td>
         `;
         walletsTbody.appendChild(tr);
@@ -3371,15 +3371,15 @@ async function loadLedgerTable() {
       const methBadge = renderMethodBadge(l.paymentMethod);
       tr.innerHTML = `
         <td style="font-size:11px;font-family:monospace;">${l.bookingId}</td>
-        <td style="font-size:11px;">${l.customerName || 'â€”'}</td>
-        <td style="font-size:11px;">${l.providerName || 'â€”'}</td>
-        <td style="font-weight:700;color:var(--primary-solid);">â‚¹${(l.grossAmount || 0).toFixed(2)}</td>
-        <td style="font-weight:600;color:var(--warning);">â‚¹${(l.commissionAmount || 0).toFixed(2)} <span style="font-size:9px;color:var(--text-muted);">(${l.commissionRate || 20}%)</span></td>
-        <td style="font-weight:600;color:var(--success);">â‚¹${(l.providerEarnings || 0).toFixed(2)}</td>
+        <td style="font-size:11px;">${l.customerName || '—'}</td>
+        <td style="font-size:11px;">${l.providerName || '—'}</td>
+        <td style="font-weight:700;color:var(--primary-solid);">₹${(l.grossAmount || 0).toFixed(2)}</td>
+        <td style="font-weight:600;color:var(--warning);">₹${(l.commissionAmount || 0).toFixed(2)} <span style="font-size:9px;color:var(--text-muted);">(${l.commissionRate || 20}%)</span></td>
+        <td style="font-weight:600;color:var(--success);">₹${(l.providerEarnings || 0).toFixed(2)}</td>
         <td>${methBadge}</td>
         <td>${payBadge}</td>
         <td>${commBadge}</td>
-        <td style="font-size:11px;">${l.createdAt ? new Date(l.createdAt).toLocaleString('en-IN', {dateStyle:'short',timeStyle:'short'}) : 'â€”'}</td>
+        <td style="font-size:11px;">${l.createdAt ? new Date(l.createdAt).toLocaleString('en-IN', {dateStyle:'short',timeStyle:'short'}) : '—'}</td>
         <td>
           ${l.paymentMethod === 'cash' && l.commissionStatus === 'pending' ?
             `<button class="btn btn-primary btn-sm" style="font-size:10px;padding:3px 8px;" onclick="collectCommissionForBooking('${l.shopId}', '${l.bookingId}', ${l.commissionAmount})">Collect Comm</button>` : ''}
@@ -3420,10 +3420,10 @@ async function loadSettlementQueue() {
             <h4 style="margin:0;display:flex;align-items:center;gap:8px;">${s.providerName || s.shopId} <span class="badge badge-pending" style="font-size:10px;">Pending</span></h4>
             <p style="font-size:12px;color:var(--text-muted);margin:4px 0;">Settlement ID: <strong>${s.id}</strong></p>
             <p style="font-size:12px;color:var(--text-muted);margin:4px 0;">Bank: ${s.bankAccount ? '****' + s.bankAccount.slice(-4) : 'N/A'} | IFSC: ${s.ifscCode || 'N/A'} | UPI: ${s.upiId || 'N/A'}</p>
-            <p style="font-size:12px;color:var(--text-muted);">Requested: ${s.requestedAt ? new Date(s.requestedAt).toLocaleString('en-IN') : 'â€”'}</p>
+            <p style="font-size:12px;color:var(--text-muted);">Requested: ${s.requestedAt ? new Date(s.requestedAt).toLocaleString('en-IN') : '—'}</p>
           </div>
           <div style="text-align:right;">
-            <p style="font-size:28px;font-weight:800;color:var(--primary-solid);margin:0;">â‚¹${(s.amount || 0).toFixed(2)}</p>
+            <p style="font-size:28px;font-weight:800;color:var(--primary-solid);margin:0;">₹${(s.amount || 0).toFixed(2)}</p>
             <p style="font-size:11px;color:var(--text-muted);">Requested Amount</p>
           </div>
         </div>
@@ -3463,13 +3463,13 @@ async function loadSettlementHistory() {
       tr.innerHTML = `
         <td style="font-size:11px;font-family:monospace;">${s.id}</td>
         <td><strong>${s.providerName || s.shopId}</strong></td>
-        <td style="font-weight:700;color:var(--primary-solid);">â‚¹${(s.amount || 0).toFixed(2)}</td>
+        <td style="font-weight:700;color:var(--primary-solid);">₹${(s.amount || 0).toFixed(2)}</td>
         <td><span style="color:${statusColors[s.status] || 'var(--text-primary)'};font-weight:600;">${s.status.toUpperCase()}</span></td>
         <td style="font-size:11px;">${s.bankAccount ? '****' + s.bankAccount.slice(-4) + (s.ifscCode ? ' | ' + s.ifscCode : '') : (s.upiId || 'N/A')}</td>
-        <td style="font-size:11px;font-family:monospace;">${s.transactionId || 'â€”'}</td>
-        <td style="font-size:11px;">${s.requestedAt ? new Date(s.requestedAt).toLocaleDateString('en-IN') : 'â€”'}</td>
-        <td style="font-size:11px;">${s.completedAt ? new Date(s.completedAt).toLocaleDateString('en-IN') : 'â€”'}</td>
-        <td style="font-size:11px;color:var(--text-muted);">${s.adminNote || 'â€”'}</td>
+        <td style="font-size:11px;font-family:monospace;">${s.transactionId || '—'}</td>
+        <td style="font-size:11px;">${s.requestedAt ? new Date(s.requestedAt).toLocaleDateString('en-IN') : '—'}</td>
+        <td style="font-size:11px;">${s.completedAt ? new Date(s.completedAt).toLocaleDateString('en-IN') : '—'}</td>
+        <td style="font-size:11px;color:var(--text-muted);">${s.adminNote || '—'}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -3585,13 +3585,13 @@ async function loadPaymentAuditLog() {
       };
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="font-size:11px;">${l.createdAt ? new Date(l.createdAt).toLocaleString('en-IN') : 'â€”'}</td>
+        <td style="font-size:11px;">${l.createdAt ? new Date(l.createdAt).toLocaleString('en-IN') : '—'}</td>
         <td><span style="font-size:10px;font-weight:700;color:${eventColors[l.eventType] || 'var(--text-primary)'};">${l.eventType.toUpperCase().replace(/_/g, ' ')}</span></td>
-        <td style="font-size:11px;font-family:monospace;">${l.bookingId || 'â€”'}</td>
-        <td style="font-size:11px;">${l.shopId || 'â€”'}</td>
-        <td style="font-weight:600;">${l.amount ? 'â‚¹' + l.amount.toFixed(2) : 'â€”'}</td>
+        <td style="font-size:11px;font-family:monospace;">${l.bookingId || '—'}</td>
+        <td style="font-size:11px;">${l.shopId || '—'}</td>
+        <td style="font-weight:600;">${l.amount ? '₹' + l.amount.toFixed(2) : '—'}</td>
         <td><span class="badge ${l.actor === 'admin' ? 'badge-active' : l.actor === 'provider' ? 'badge-pending' : 'badge-completed'}">${l.actor || 'system'}</span></td>
-        <td style="font-size:11px;color:var(--text-secondary);">${l.description || 'â€”'}</td>
+        <td style="font-size:11px;color:var(--text-secondary);">${l.description || '—'}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -3639,10 +3639,10 @@ async function loadCommissionReport() {
           <span style="font-size:11px;color:var(--text-muted);">${r.jobCount} jobs</span>
         </div>
         <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;flex-wrap:wrap;">
-          <span>Gross: <strong>â‚¹${r.totalGross.toFixed(2)}</strong></span>
-          <span>Commission: <strong style="color:var(--warning);">â‚¹${r.totalCommission.toFixed(2)}</strong></span>
-          <span>Collected: <strong style="color:var(--success);">â‚¹${r.commissionPaid.toFixed(2)}</strong></span>
-          ${r.commissionPending > 0 ? `<span>Pending: <strong style="color:var(--danger);">â‚¹${r.commissionPending.toFixed(2)}</strong></span>` : ''}
+          <span>Gross: <strong>₹${r.totalGross.toFixed(2)}</strong></span>
+          <span>Commission: <strong style="color:var(--warning);">₹${r.totalCommission.toFixed(2)}</strong></span>
+          <span>Collected: <strong style="color:var(--success);">₹${r.commissionPaid.toFixed(2)}</strong></span>
+          ${r.commissionPending > 0 ? `<span>Pending: <strong style="color:var(--danger);">₹${r.commissionPending.toFixed(2)}</strong></span>` : ''}
         </div>
       `;
       listEl.appendChild(div);
@@ -3775,10 +3775,10 @@ function exportLedgerCSV() {
 function renderPayStatusBadge(status) {
   const map = {
     cash_pending: ['badge-pending', 'ðŸ’µ Cash Pending'],
-    cash_collected: ['badge-active', 'âœ… Cash Collected'],
+    cash_collected: ['badge-active', '✅ Cash Collected'],
     paid: ['badge-completed', 'ðŸ’³ Paid'],
     settlement_pending: ['badge-pending', 'â³ Settlement Pending'],
-    settled: ['badge-completed', 'âœ… Settled'],
+    settled: ['badge-completed', '✅ Settled'],
     pending: ['badge-pending', 'â³ Pending'],
     failed: ['badge-cancelled', 'âŒ Failed'],
     refunded: ['badge-cancelled', 'â†©ï¸ Refunded']
@@ -3790,9 +3790,9 @@ function renderPayStatusBadge(status) {
 function renderCommStatusBadge(status) {
   const map = {
     pending: ['badge-pending', 'â³ Pending'],
-    paid: ['badge-completed', 'âœ… Paid'],
+    paid: ['badge-completed', '✅ Paid'],
     waived: ['badge-active', 'ðŸŽ Waived'],
-    na: ['', 'â€”']
+    na: ['', '—']
   };
   const [cls, label] = map[status] || ['badge-pending', status];
   return cls ? `<span class="badge ${cls}" style="font-size:10px;">${label}</span>` : label;
@@ -3808,7 +3808,7 @@ function renderMethodBadge(method) {
     netbanking: ['ðŸ¦', 'var(--success)']
   };
   const [icon, color] = map[method] || ['ðŸ’°', 'var(--text-primary)'];
-  return `<span style="font-size:11px;font-weight:600;color:${color};">${icon} ${method ? method.toUpperCase() : 'â€”'}</span>`;
+  return `<span style="font-size:11px;font-weight:600;color:${color};">${icon} ${method ? method.toUpperCase() : '—'}</span>`;
 }
 
 // Load Audit logs tab
@@ -3902,8 +3902,8 @@ async function loadReports() {
   const totalFulfill = completed + cancelled;
   const rate = totalFulfill > 0 ? ((completed / totalFulfill) * 100).toFixed(1) : 100;
   
-  document.getElementById('report-gross-volume').textContent = `â‚¹${totalGross.toLocaleString()}`;
-  document.getElementById('report-commission').textContent = `â‚¹${(totalGross * 0.10).toFixed(0).toLocaleString()}`;
+  document.getElementById('report-gross-volume').textContent = `₹${totalGross.toLocaleString()}`;
+  document.getElementById('report-commission').textContent = `₹${(totalGross * 0.10).toFixed(0).toLocaleString()}`;
   document.getElementById('report-fulfillment-rate').textContent = `${rate}%`;
   
   // Render Top shops
@@ -3951,7 +3951,7 @@ async function renderCharts() {
     const tooltipBg = isDark ? '#111827' : '#ffffff';
     const borderColor = isDark ? '#182035' : '#f1f5f9';
 
-    // â”€â”€ 1. REVENUE TREND (ApexCharts Area) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 1. REVENUE TREND (ApexCharts Area) ───────────────
     const revEl = document.getElementById('revenueTrendChart');
     if (revEl) {
       if (apexRevenueTrend) { apexRevenueTrend.destroy(); apexRevenueTrend = null; }
@@ -3961,7 +3961,7 @@ async function renderCharts() {
 
       apexRevenueTrend = new ApexCharts(revEl, {
         series: [
-          { name: 'Revenue (â‚¹)', type: 'area', data: revenues },
+          { name: 'Revenue (₹)', type: 'area', data: revenues },
           { name: 'Bookings', type: 'line', data: bookingCounts }
         ],
         chart: { height: 260, type: 'line', toolbar: { show: false }, background: 'transparent', animations: { enabled: true, speed: 600 } },
@@ -3972,7 +3972,7 @@ async function renderCharts() {
         grid: { borderColor: gridColor, strokeDashArray: 4, padding: { left: 10, right: 10 } },
         xaxis: { categories: labels, labels: { style: { colors: textColor, fontFamily: 'Outfit' }, rotate: -20 }, axisBorder: { show: false }, axisTicks: { show: false } },
         yaxis: [
-          { labels: { style: { colors: textColor, fontFamily: 'Outfit' }, formatter: v => 'â‚¹' + v.toLocaleString() } },
+          { labels: { style: { colors: textColor, fontFamily: 'Outfit' }, formatter: v => '₹' + v.toLocaleString() } },
           { opposite: true, labels: { style: { colors: textColor, fontFamily: 'Outfit' } } }
         ],
         tooltip: { theme: isDark ? 'dark' : 'light', style: { fontFamily: 'Outfit' } },
@@ -3982,7 +3982,7 @@ async function renderCharts() {
       apexRevenueTrend.render();
     }
 
-    // â”€â”€ 2. BOOKING STATUS DONUT (ApexCharts Donut) â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 2. BOOKING STATUS DONUT (ApexCharts Donut) ────────
     const catEl = document.getElementById('categorySplitChart');
     if (catEl) {
       if (apexCategorySplit) { apexCategorySplit.destroy(); apexCategorySplit = null; }
@@ -4004,7 +4004,7 @@ async function renderCharts() {
       apexCategorySplit.render();
     }
 
-    // â”€â”€ 3. FULFILLMENT STATUS (ApexCharts Donut in Reports) â”€
+    // ── 3. FULFILLMENT STATUS (ApexCharts Donut in Reports) ─
     const fulfillEl = document.getElementById('fulfillmentStatusChart');
     if (fulfillEl) {
       if (apexFulfillment) { apexFulfillment.destroy(); apexFulfillment = null; }
@@ -4033,7 +4033,7 @@ async function renderCharts() {
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€ PROVIDERS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── PROVIDERS TAB ─────────────────────────────────────
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function renderProvidersTable() {
   const tbody = document.getElementById('providers-tbody');
@@ -4106,12 +4106,12 @@ function renderProvidersTable() {
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€ REVIEWS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── REVIEWS TAB ───────────────────────────────────────
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 async function loadReviews() {
   const tbody = document.getElementById('reviews-tbody');
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="7" style="padding:40px;text-align:center;"><div class="empty-state" style="padding:0;"><div class="empty-icon"><i class="fa-solid fa-star"></i></div><h4>Loading Reviewsâ€¦</h4></div></td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="7" style="padding:40px;text-align:center;"><div class="empty-state" style="padding:0;"><div class="empty-icon"><i class="fa-solid fa-star"></i></div><h4>Loading Reviews…</h4></div></td></tr>`;
 
   try {
     const res = await fetch(`${API_URL}/reviews`);
@@ -4176,12 +4176,12 @@ function renderReviewsTable() {
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€ WALLET TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── WALLET TAB ────────────────────────────────────────
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 async function loadWalletTab() {
   const tbody = document.getElementById('wallet-tab-tbody');
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">Loading wallet transactionsâ€¦</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">Loading wallet transactions…</td></tr>`;
 
   try {
     const res = await fetch(`${API_URL}/wallet/transactions`);
@@ -4195,9 +4195,9 @@ async function loadWalletTab() {
     });
 
     const setKpi = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    setKpi('wallet-stat-escrow', 'â‚¹' + (totalCredit - totalDebit).toFixed(2));
-    setKpi('wallet-stat-credited', 'â‚¹' + totalCredit.toFixed(2));
-    setKpi('wallet-stat-debited', 'â‚¹' + totalDebit.toFixed(2));
+    setKpi('wallet-stat-escrow', '₹' + (totalCredit - totalDebit).toFixed(2));
+    setKpi('wallet-stat-credited', '₹' + totalCredit.toFixed(2));
+    setKpi('wallet-stat-debited', '₹' + totalDebit.toFixed(2));
 
     if (txns.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" style="padding:48px;"><div class="empty-state" style="padding:0;"><div class="empty-icon"><i class="fa-solid fa-wallet"></i></div><h4>No Transactions</h4><p>Wallet transactions will appear here.</p></div></td></tr>`;
@@ -4469,6 +4469,216 @@ function renderCmsPromotions() {
   });
 }
 
+
+// ============================================================
+// UNIVERSAL ACTION VALUE SELECTOR & CATALOG HELPERS
+// ============================================================
+let _cachedCatalogServices = [];
+async function fetchAllCatalogServices() {
+  if (_cachedCatalogServices && _cachedCatalogServices.length > 0) return _cachedCatalogServices;
+  try {
+    const res = await fetch(`${API_URL}/services`);
+    const data = await res.json();
+    _cachedCatalogServices = Array.isArray(data) ? data : (data.data || []);
+    return _cachedCatalogServices;
+  } catch (e) {
+    return [];
+  }
+}
+
+function renderActionValueControl(container, actionType, initialVal, onValueChange) {
+  if (!container) return;
+  container.innerHTML = '';
+  
+  if (actionType === 'No Action') {
+    container.innerHTML = '<span class="fs-12 text-muted" style="font-style:italic;">No action triggered when tapped.</span>';
+    if (onValueChange) onValueChange('');
+    return;
+  }
+  
+  if (actionType === 'Open Category') {
+    const select = document.createElement('select');
+    select.className = 'form-control dynamic-action-select';
+    select.style.cssText = 'width:100%; padding:8px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main); font-size:12px;';
+    
+    let html = '<option value="">-- Select Category --</option>';
+    (categories || []).forEach(cat => {
+      const isSel = (initialVal && initialVal.toLowerCase() === cat.id.toLowerCase());
+      html += `<option value="${cat.id}" ${isSel ? 'selected' : ''}>${cat.name} (${cat.id})</option>`;
+    });
+    select.innerHTML = html;
+    select.addEventListener('change', () => {
+      if (onValueChange) onValueChange(select.value);
+    });
+    container.appendChild(select);
+    if (select.value && onValueChange) onValueChange(select.value);
+    return;
+  }
+  
+  if (actionType === 'Open Shop') {
+    const select = document.createElement('select');
+    select.className = 'form-control dynamic-action-select';
+    select.style.cssText = 'width:100%; padding:8px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main); font-size:12px;';
+    
+    let html = '<option value="">-- Select Registered Shop Partner --</option>';
+    (shops || []).forEach(sh => {
+      const isSel = (initialVal && (initialVal === sh.id || initialVal === sh._id));
+      const cats = Array.isArray(sh.categories) ? sh.categories.join(', ') : (sh.category || 'General');
+      html += `<option value="${sh.id}" ${isSel ? 'selected' : ''}>${sh.name} [ID: ${sh.id}] — (${cats})</option>`;
+    });
+    select.innerHTML = html;
+    select.addEventListener('change', () => {
+      if (onValueChange) onValueChange(select.value);
+    });
+    container.appendChild(select);
+    if (select.value && onValueChange) onValueChange(select.value);
+    return;
+  }
+  
+  if (actionType === 'Open Subcategory') {
+    if (!_cachedAdminSubcategories || _cachedAdminSubcategories.length === 0) {
+      fetchAllSubcategories().then(subs => {
+        _cachedAdminSubcategories = subs || [];
+        renderActionValueControl(container, actionType, initialVal, onValueChange);
+      });
+      container.innerHTML = '<span class="fs-12 text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Loading subcategories...</span>';
+      return;
+    }
+    
+    const select = document.createElement('select');
+    select.className = 'form-control dynamic-action-select';
+    select.style.cssText = 'width:100%; padding:8px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main); font-size:12px;';
+    
+    const grouped = {};
+    _cachedAdminSubcategories.forEach(sub => {
+      const cId = sub.categoryId || 'other_services';
+      if (!grouped[cId]) grouped[cId] = [];
+      grouped[cId].push(sub);
+    });
+    
+    let html = '<option value="">-- Select Subcategory --</option>';
+    Object.keys(grouped).forEach(cId => {
+      const catObj = (categories || []).find(c => c.id.toLowerCase() === cId.toLowerCase());
+      const catLabel = catObj ? catObj.name : cId.replace(/_/g, ' ').toUpperCase();
+      html += `<optgroup label="${catLabel}">`;
+      grouped[cId].forEach(sub => {
+        const fullVal = `${cId}:${sub.id}`;
+        const isSel = (initialVal === fullVal || initialVal === sub.id || (initialVal && initialVal.endsWith(':' + sub.id)));
+        html += `<option value="${fullVal}" ${isSel ? 'selected' : ''}>${sub.name} (${sub.id})</option>`;
+      });
+      html += '</optgroup>';
+    });
+    select.innerHTML = html;
+    select.addEventListener('change', () => {
+      if (onValueChange) onValueChange(select.value);
+    });
+    container.appendChild(select);
+    if (select.value && onValueChange) onValueChange(select.value);
+    return;
+  }
+  
+  if (actionType === 'Open Specific Service') {
+    fetchAllCatalogServices().then(services => {
+      const select = document.createElement('select');
+      select.className = 'form-control dynamic-action-select';
+      select.style.cssText = 'width:100%; padding:8px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main); font-size:12px;';
+      let html = '<option value="">-- Select Catalog Service --</option>';
+      (services || []).forEach(srv => {
+        const isSel = (initialVal === srv.id || (srv._id && initialVal === srv._id));
+        html += `<option value="${srv.id}" ${isSel ? 'selected' : ''}>${srv.title} [₹${srv.price}] (${srv.categoryId || ''})</option>`;
+      });
+      select.innerHTML = html;
+      select.addEventListener('change', () => {
+        if (onValueChange) onValueChange(select.value);
+      });
+      container.innerHTML = '';
+      container.appendChild(select);
+      if (select.value && onValueChange) onValueChange(select.value);
+    });
+    container.innerHTML = '<span class="fs-12 text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Loading catalog services...</span>';
+    return;
+  }
+  
+  if (actionType === 'Open Internal Screen') {
+    const select = document.createElement('select');
+    select.className = 'form-control dynamic-action-select';
+    select.style.cssText = 'width:100%; padding:8px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main); font-size:12px;';
+    
+    const standardScreens = [
+      { path: '/category/all', label: 'All Services & Categories (/category/all)' },
+      { path: '/shops', label: 'Nearby Registered Shops (/shops)' },
+      { path: '/booking-quick', label: 'Quick Instant Booking (/booking-quick)' },
+      { path: '/offers', label: 'Discounts & Coupons (/offers)' },
+      { path: '/orders', label: 'Booking / Order History (/orders)' },
+      { path: '/wishlist', label: 'Customer Wishlist (/wishlist)' },
+      { path: '/notifications', label: 'Notifications Screen (/notifications)' },
+      { path: '/search', label: 'Service Search (/search)' }
+    ];
+    
+    let isStandard = false;
+    let html = '<option value="">-- Select App Screen --</option>';
+    standardScreens.forEach(sc => {
+      const isSel = (initialVal === sc.path);
+      if (isSel) isStandard = true;
+      html += `<option value="${sc.path}" ${isSel ? 'selected' : ''}>${sc.label}</option>`;
+    });
+    html += `<option value="__custom__" ${(!isStandard && initialVal) ? 'selected' : ''}>Custom Route Path...</option>`;
+    select.innerHTML = html;
+    
+    const customInput = document.createElement('input');
+    customInput.type = 'text';
+    customInput.className = 'form-control';
+    customInput.placeholder = 'e.g. /my-custom-screen';
+    customInput.style.cssText = 'margin-top:6px; font-size:12px; display:' + ((!isStandard && initialVal) ? 'block' : 'none');
+    customInput.value = (!isStandard && initialVal) ? initialVal : '';
+    
+    select.addEventListener('change', () => {
+      if (select.value === '__custom__') {
+        customInput.style.display = 'block';
+        if (onValueChange) onValueChange(customInput.value);
+      } else {
+        customInput.style.display = 'none';
+        if (onValueChange) onValueChange(select.value);
+      }
+    });
+    customInput.addEventListener('input', () => {
+      if (onValueChange) onValueChange(customInput.value);
+    });
+    
+    container.appendChild(select);
+    container.appendChild(customInput);
+    if (select.value && select.value !== '__custom__' && onValueChange) onValueChange(select.value);
+    return;
+  }
+  
+  if (actionType === 'Open External URL') {
+    const input = document.createElement('input');
+    input.type = 'url';
+    input.className = 'form-control';
+    input.placeholder = 'https://...';
+    input.style.cssText = 'width:100%; font-size:12px;';
+    input.value = initialVal || '';
+    input.addEventListener('input', () => {
+      if (onValueChange) onValueChange(input.value);
+    });
+    container.appendChild(input);
+    if (input.value && onValueChange) onValueChange(input.value);
+    return;
+  }
+  
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'form-control';
+  input.placeholder = 'Target action value (ID or path)';
+  input.style.cssText = 'width:100%; font-size:12px;';
+  input.value = initialVal || '';
+  input.addEventListener('input', () => {
+    if (onValueChange) onValueChange(input.value);
+  });
+  container.appendChild(input);
+  if (input.value && onValueChange) onValueChange(input.value);
+}
+
 function editPromo(id) {
   const promo = cmsPromotions.find(p => p.id === id);
   if (!promo) return;
@@ -4648,7 +4858,7 @@ function renderCmsExperts() {
           <div>
             <strong>${exp.name}</strong>
             ${exp.verifiedBadge ? '<span style="font-size:10px; color:var(--success); margin-left:4px;"><i class="fa-solid fa-circle-check"></i></span>' : ''}
-            <div style="font-size:10px; color:var(--text-muted);">${exp.experience || 'N/A exp'} â€¢ ${exp.completedJobs || 0} jobs</div>
+            <div style="font-size:10px; color:var(--text-muted);">${exp.experience || 'N/A exp'} • ${exp.completedJobs || 0} jobs</div>
           </div>
         </div>
       </td>
@@ -4950,6 +5160,24 @@ function setupCmsEvents() {
 }
 
 function setupCmsForms() {
+  
+  const promoCtaSelect = document.getElementById('promo-cta');
+  if (promoCtaSelect) {
+    promoCtaSelect.addEventListener('change', () => {
+      renderActionValueControl(document.getElementById('promo-cta-val-container'), promoCtaSelect.value, '', (val) => {
+        document.getElementById('promo-cta-val').value = val;
+      });
+    });
+  }
+  const specialCtaSelect = document.getElementById('special-cta');
+  if (specialCtaSelect) {
+    specialCtaSelect.addEventListener('change', () => {
+      renderActionValueControl(document.getElementById('special-cta-val-container'), specialCtaSelect.value, '', (val) => {
+        document.getElementById('special-cta-val').value = val;
+      });
+    });
+  }
+
   const promoForm = document.getElementById('promo-form');
   if (promoForm) {
     promoForm.addEventListener('submit', async (e) => {
@@ -5320,53 +5548,204 @@ function addServiceItemRow(data = {}) {
   const row = document.createElement('div');
   row.className = 'service-item-row';
   row.setAttribute('data-item-id', itemId);
-  row.style.cssText = 'background: var(--background); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; position:relative;';
+  row.style.cssText = 'background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 12px; position:relative; box-shadow:0 2px 8px rgba(0,0,0,0.04);';
+  
+  const currentAction = data.actionType || 'Open Shop';
+  const currentVal = data.actionValue || '';
+
   row.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-      <strong style="font-size:12px; color:var(--primary-solid);"><i class="fa-solid fa-wrench"></i> Service Card Details</strong>
-      <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.service-item-row').remove()" style="padding: 2px 6px; font-size:10px;"><i class="fa-solid fa-trash-can"></i> Remove</button>
-    </div>
-    <div class="form-row">
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="font-size:11px; margin-bottom:2px;">Service Title *</label>
-        <input type="text" class="si-title" value="${data.title || ''}" placeholder="e.g. Sofa Cleaning" required style="padding: 6px; font-size:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--border-color);">
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <span class="badge" style="background:var(--primary-solid); color:#fff; font-size:11px;"><i class="fa-solid fa-wrench"></i> Service Card</span>
+        <button type="button" class="btn btn-secondary btn-xs btn-quickfill-cat" style="font-size:11px; padding:3px 8px; border-radius:6px; cursor:pointer;" title="Auto-fill title, image, price from master catalog">
+          <i class="fa-solid fa-wand-magic-sparkles text-gradient"></i> Quick-Fill from Catalog
+        </button>
+        <button type="button" class="btn btn-secondary btn-xs btn-quickfill-shop" style="font-size:11px; padding:3px 8px; border-radius:6px; cursor:pointer;" title="Auto-fill from a registered shop's services">
+          <i class="fa-solid fa-store"></i> Quick-Fill from Shop
+        </button>
       </div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="font-size:11px; margin-bottom:2px;">Image URL</label>
-        <input type="url" class="si-image" value="${data.imageUrl || ''}" placeholder="https://images.unsplash.com/..." style="padding: 6px; font-size:12px;">
+      <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.service-item-row').remove()" style="padding: 3px 8px; font-size:11px;"><i class="fa-solid fa-trash-can"></i> Remove</button>
+    </div>
+
+    <!-- Quick Fill Picker Container -->
+    <div class="quick-fill-picker-box" style="display:none; background:var(--bg-input); border:1px solid var(--primary-solid); border-radius:8px; padding:10px; margin-bottom:12px;"></div>
+
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:8px; flex:1;">
+        <label style="font-size:11px; margin-bottom:2px; font-weight:600;">Service Title *</label>
+        <input type="text" class="si-title" value="${esc(data.title || '')}" placeholder="e.g. Split AC Power Jet Service" required style="padding: 7px 10px; font-size:12px;">
+      </div>
+      <div class="form-group" style="margin-bottom:8px; flex:1;">
+        <label style="font-size:11px; margin-bottom:2px; font-weight:600;">Image URL</label>
+        <input type="url" class="si-image" value="${esc(data.imageUrl || '')}" placeholder="https://images.unsplash.com/..." style="padding: 7px 10px; font-size:12px;">
       </div>
     </div>
     <div class="form-row">
       <div class="form-group" style="margin-bottom:8px;">
         <label style="font-size:11px; margin-bottom:2px;">Rating (0 - 5)</label>
-        <input type="number" class="si-rating" value="${data.rating || 4.5}" step="0.1" min="0" max="5" style="padding: 6px; font-size:12px;">
+        <input type="number" class="si-rating" value="${data.rating || 4.8}" step="0.1" min="0" max="5" style="padding: 7px 10px; font-size:12px;">
       </div>
       <div class="form-group" style="margin-bottom:8px;">
         <label style="font-size:11px; margin-bottom:2px;">Reviews Count</label>
-        <input type="text" class="si-reviews" value="${data.reviewsCount || ''}" placeholder="e.g. 1.2K or 580" style="padding: 6px; font-size:12px;">
+        <input type="text" class="si-reviews" value="${esc(data.reviewsCount || '180')}" placeholder="e.g. 1.2K or 180" style="padding: 7px 10px; font-size:12px;">
+      </div>
+      <div class="form-group" style="margin-bottom:8px;">
+        <label style="font-size:11px; margin-bottom:2px;">Starting Price</label>
+        <input type="text" class="si-price" value="${esc(data.startingPrice || '₹499')}" placeholder="e.g. ₹499" style="padding: 7px 10px; font-size:12px;">
       </div>
     </div>
     <div class="form-row">
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="font-size:11px; margin-bottom:2px;">Starting Price</label>
-        <input type="text" class="si-price" value="${data.startingPrice || ''}" placeholder="e.g. â‚¹599" style="padding: 6px; font-size:12px;">
-      </div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label style="font-size:11px; margin-bottom:2px;">On Click Action</label>
-        <select class="si-action" style="padding: 6px; font-size:12px;">
-          <option value="Open Shop" ${(data.actionType || 'Open Shop') === 'Open Shop' ? 'selected' : ''}>Open Shop</option>
-          <option value="Open Category" ${data.actionType === 'Open Category' ? 'selected' : ''}>Open Category</option>
-          <option value="Open Internal Screen" ${data.actionType === 'Open Internal Screen' ? 'selected' : ''}>Open Internal Screen</option>
-          <option value="No Action" ${data.actionType === 'No Action' ? 'selected' : ''}>No Action</option>
+      <div class="form-group" style="margin-bottom:8px; flex:1;">
+        <label style="font-size:11px; margin-bottom:2px; font-weight:600;">On Click Action Type</label>
+        <select class="si-action" style="padding: 7px 10px; font-size:12px;">
+          <option value="Open Shop" ${currentAction === 'Open Shop' ? 'selected' : ''}>Open Shop</option>
+          <option value="Open Category" ${currentAction === 'Open Category' ? 'selected' : ''}>Open Category</option>
+          <option value="Open Subcategory" ${currentAction === 'Open Subcategory' ? 'selected' : ''}>Open Subcategory</option>
+          <option value="Open Specific Service" ${currentAction === 'Open Specific Service' ? 'selected' : ''}>Open Specific Service</option>
+          <option value="Open Internal Screen" ${currentAction === 'Open Internal Screen' ? 'selected' : ''}>Open Internal Screen</option>
+          <option value="No Action" ${currentAction === 'No Action' ? 'selected' : ''}>No Action</option>
         </select>
       </div>
-    </div>
-    <div class="form-group" style="margin-bottom:0;">
-      <label style="font-size:11px; margin-bottom:2px;">Action Value (Shop ID / Category ID / Screen Path)</label>
-      <input type="text" class="si-action-value" value="${data.actionValue || ''}" placeholder="e.g. shop-123 or cleaning" style="padding: 6px; font-size:12px;">
+      <div class="form-group" style="margin-bottom:8px; flex:2;">
+        <label style="font-size:11px; margin-bottom:2px; font-weight:600;">Action Target Value (Shop / Category / Subcategory)</label>
+        <div class="si-action-val-container"></div>
+        <input type="hidden" class="si-action-value" value="${esc(currentVal)}">
+      </div>
     </div>
     <input type="hidden" class="si-id" value="${itemId}">
   `;
+
+  const valContainer = row.querySelector('.si-action-val-container');
+  const actionSelect = row.querySelector('.si-action');
+  const hiddenValInput = row.querySelector('.si-action-value');
+
+  // Render universal action value selector inside the row
+  renderActionValueControl(valContainer, actionSelect.value, currentVal, (val) => {
+    hiddenValInput.value = val;
+  });
+
+  actionSelect.addEventListener('change', () => {
+    renderActionValueControl(valContainer, actionSelect.value, '', (val) => {
+      hiddenValInput.value = val;
+    });
+  });
+
+  // Setup Quick-Fill from Catalog button
+  const quickFillCatBtn = row.querySelector('.btn-quickfill-cat');
+  const pickerBox = row.querySelector('.quick-fill-picker-box');
+  if (quickFillCatBtn && pickerBox) {
+    quickFillCatBtn.addEventListener('click', async () => {
+      if (pickerBox.style.display === 'block') {
+        pickerBox.style.display = 'none';
+        return;
+      }
+      pickerBox.style.display = 'block';
+      pickerBox.innerHTML = '<span class="fs-12 text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Loading catalog services...</span>';
+      const catalog = await fetchAllCatalogServices();
+      if (!catalog || catalog.length === 0) {
+        pickerBox.innerHTML = '<span class="fs-12 text-danger">No catalog services available.</span>';
+        return;
+      }
+      let pickerHtml = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
+        '<strong style="font-size:11px; color:var(--text-main);">Select a Catalog Service to auto-fill:</strong>' +
+        '<button type="button" class="btn btn-xs btn-secondary btn-close-srv-picker">&times; Close</button>' +
+        '</div>' +
+        '<select class="form-control srv-picker-select" style="font-size:12px; padding:6px; width:100%;">' +
+        '<option value="">-- Choose Catalog Service --</option>';
+      catalog.forEach((srv, idx) => {
+        pickerHtml += `<option value="${idx}">${srv.title} — ₹${srv.price} (${srv.categoryId || 'General'})</option>`;
+      });
+      pickerHtml += '</select>';
+      pickerBox.innerHTML = pickerHtml;
+
+      const closeBtn = pickerBox.querySelector('.btn-close-srv-picker');
+      if (closeBtn) closeBtn.onclick = () => { pickerBox.style.display = 'none'; };
+
+      const pickerSelect = pickerBox.querySelector('.srv-picker-select');
+      if (pickerSelect) {
+        pickerSelect.addEventListener('change', () => {
+          const selectedIdx = pickerSelect.value;
+          if (selectedIdx === '') return;
+          const srv = catalog[parseInt(selectedIdx)];
+          if (srv) {
+            row.querySelector('.si-title').value = srv.title;
+            row.querySelector('.si-image').value = srv.imageUrl || '';
+            row.querySelector('.si-price').value = `₹${srv.price}`;
+            row.querySelector('.si-rating').value = srv.rating || 4.8;
+            row.querySelector('.si-reviews').value = srv.reviewsCount || '150';
+            
+            if (srv.subcategoryId) {
+              actionSelect.value = 'Open Subcategory';
+              const targetVal = `${srv.categoryId}:${srv.subcategoryId}`;
+              hiddenValInput.value = targetVal;
+              renderActionValueControl(valContainer, 'Open Subcategory', targetVal, (val) => {
+                hiddenValInput.value = val;
+              });
+            } else if (srv.categoryId) {
+              actionSelect.value = 'Open Category';
+              hiddenValInput.value = srv.categoryId;
+              renderActionValueControl(valContainer, 'Open Category', srv.categoryId, (val) => {
+                hiddenValInput.value = val;
+              });
+            }
+            pickerBox.style.display = 'none';
+            showToast(`Auto-filled from "${srv.title}"!`, 'info');
+          }
+        });
+      }
+    });
+  }
+
+  // Setup Quick-Fill from Shop button
+  const quickFillShopBtn = row.querySelector('.btn-quickfill-shop');
+  if (quickFillShopBtn && pickerBox) {
+    quickFillShopBtn.addEventListener('click', () => {
+      if (pickerBox.style.display === 'block') {
+        pickerBox.style.display = 'none';
+        return;
+      }
+      pickerBox.style.display = 'block';
+      let pickerHtml = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
+        '<strong style="font-size:11px; color:var(--text-main);">Select Shop to link service card:</strong>' +
+        '<button type="button" class="btn btn-xs btn-secondary btn-close-shop-picker">&times; Close</button>' +
+        '</div>' +
+        '<select class="form-control shop-picker-select" style="font-size:12px; padding:6px; width:100%;">' +
+        '<option value="">-- Choose Registered Shop --</option>';
+      (shops || []).forEach(sh => {
+        pickerHtml += `<option value="${sh.id}">${sh.name} [ID: ${sh.id}]</option>`;
+      });
+      pickerHtml += '</select>';
+      pickerBox.innerHTML = pickerHtml;
+
+      const closeBtn = pickerBox.querySelector('.btn-close-shop-picker');
+      if (closeBtn) closeBtn.onclick = () => { pickerBox.style.display = 'none'; };
+
+      const shopSelect = pickerBox.querySelector('.shop-picker-select');
+      if (shopSelect) {
+        shopSelect.addEventListener('change', () => {
+          const sId = shopSelect.value;
+          if (!sId) return;
+          const sh = shops.find(s => s.id === sId);
+          if (sh) {
+            actionSelect.value = 'Open Shop';
+            hiddenValInput.value = sh.id;
+            renderActionValueControl(valContainer, 'Open Shop', sh.id, (val) => {
+              hiddenValInput.value = val;
+            });
+            if (sh.services && sh.services.length > 0) {
+              const firstSrv = sh.services[0];
+              if (!row.querySelector('.si-title').value) row.querySelector('.si-title').value = firstSrv.title;
+              if (!row.querySelector('.si-image').value) row.querySelector('.si-image').value = firstSrv.imageUrl || sh.imagePath || '';
+              if (!row.querySelector('.si-price').value) row.querySelector('.si-price').value = `₹${firstSrv.price || 299}`;
+            }
+            pickerBox.style.display = 'none';
+            showToast(`Linked card to "${sh.name}"!`, 'info');
+          }
+        });
+      }
+    });
+  }
+
   container.appendChild(row);
 }
 
@@ -5380,9 +5759,9 @@ function collectServiceItems() {
       id: row.querySelector('.si-id')?.value || `si-${Date.now()}`,
       title,
       imageUrl: row.querySelector('.si-image')?.value?.trim() || '',
-      rating: parseFloat(row.querySelector('.si-rating')?.value) || 4.5,
-      reviewsCount: row.querySelector('.si-reviews')?.value?.trim() || '',
-      startingPrice: row.querySelector('.si-price')?.value?.trim() || '',
+      rating: parseFloat(row.querySelector('.si-rating')?.value) || 4.8,
+      reviewsCount: row.querySelector('.si-reviews')?.value?.trim() || '180',
+      startingPrice: row.querySelector('.si-price')?.value?.trim() || '₹499',
       actionType: row.querySelector('.si-action')?.value || 'Open Shop',
       actionValue: row.querySelector('.si-action-value')?.value?.trim() || ''
     });
@@ -5401,16 +5780,29 @@ function editCustomSection(id) {
 
   document.getElementById('custom-section-modal-title').textContent = 'Edit Custom Section';
   document.getElementById('edit-custom-section-id').value = sec.id;
-  document.getElementById('custom-section-title').value = sec.title;
+  document.getElementById('custom-section-title').value = sec.title || '';
   document.getElementById('custom-section-subtitle').value = sec.subtitle || '';
   document.getElementById('custom-section-banner-image').value = sec.bannerImageUrl || '';
   document.getElementById('custom-section-banner-badge').value = sec.bannerBadgeText || '';
   const btnTextInput = document.getElementById('custom-section-banner-button-text');
   if (btnTextInput) btnTextInput.value = sec.bannerButtonText !== undefined ? sec.bannerButtonText : 'Explore now';
-  document.getElementById('custom-section-banner-action').value = sec.bannerActionType || 'Open Category';
-  document.getElementById('custom-section-banner-value').value = sec.bannerActionValue || '';
-  document.getElementById('custom-section-see-all-action').value = sec.seeAllActionType || 'Open Category';
-  document.getElementById('custom-section-see-all-value').value = sec.seeAllActionValue || '';
+  
+  const bAction = sec.bannerActionType || 'Open Category';
+  const bVal = sec.bannerActionValue || '';
+  document.getElementById('custom-section-banner-action').value = bAction;
+  document.getElementById('custom-section-banner-value').value = bVal;
+  renderActionValueControl(document.getElementById('custom-section-banner-val-container'), bAction, bVal, (val) => {
+    document.getElementById('custom-section-banner-value').value = val;
+  });
+
+  const saAction = sec.seeAllActionType || 'Open Category';
+  const saVal = sec.seeAllActionValue || '';
+  document.getElementById('custom-section-see-all-action').value = saAction;
+  document.getElementById('custom-section-see-all-value').value = saVal;
+  renderActionValueControl(document.getElementById('custom-section-see-all-val-container'), saAction, saVal, (val) => {
+    document.getElementById('custom-section-see-all-value').value = val;
+  });
+
   document.getElementById('custom-section-priority').value = sec.priority || 0;
   document.getElementById('custom-section-active').value = sec.isActive !== false ? 'true' : 'false';
 
@@ -5486,7 +5878,40 @@ function setupCustomSectionEvents() {
       if (btnInput) btnInput.value = 'Explore now';
       document.getElementById('service-items-container').innerHTML = '';
       document.getElementById('custom-section-banner-preview').style.display = 'none';
+
+      // Default dynamic action selectors
+      document.getElementById('custom-section-banner-action').value = 'Open Category';
+      document.getElementById('custom-section-banner-value').value = '';
+      renderActionValueControl(document.getElementById('custom-section-banner-val-container'), 'Open Category', '', (val) => {
+        document.getElementById('custom-section-banner-value').value = val;
+      });
+
+      document.getElementById('custom-section-see-all-action').value = 'Open Category';
+      document.getElementById('custom-section-see-all-value').value = '';
+      renderActionValueControl(document.getElementById('custom-section-see-all-val-container'), 'Open Category', '', (val) => {
+        document.getElementById('custom-section-see-all-value').value = val;
+      });
+
       document.getElementById('custom-section-modal').classList.add('active');
+    });
+  }
+
+  // Listeners for banner and see-all action dropdowns
+  const bannerActionSelect = document.getElementById('custom-section-banner-action');
+  if (bannerActionSelect) {
+    bannerActionSelect.addEventListener('change', () => {
+      renderActionValueControl(document.getElementById('custom-section-banner-val-container'), bannerActionSelect.value, '', (val) => {
+        document.getElementById('custom-section-banner-value').value = val;
+      });
+    });
+  }
+
+  const seeAllActionSelect = document.getElementById('custom-section-see-all-action');
+  if (seeAllActionSelect) {
+    seeAllActionSelect.addEventListener('change', () => {
+      renderActionValueControl(document.getElementById('custom-section-see-all-val-container'), seeAllActionSelect.value, '', (val) => {
+        document.getElementById('custom-section-see-all-value').value = val;
+      });
     });
   }
 
@@ -5579,6 +6004,64 @@ window.deleteCustomSection = deleteCustomSection;
 window.fetchCmsCustomSections = fetchCmsCustomSections;
 window.renderCustomSectionsList = renderCustomSectionsList;
 window.setupCustomSectionEvents = setupCustomSectionEvents;
+
+// ============================================================
+// REAL-TIME AUTO-SYNC ENGINE
+// ============================================================
+let liveSyncInterval = null;
+let lastSyncTimestamp = Date.now();
+
+async function syncLiveAdminData(isManual = false) {
+  try {
+    const syncIndicator = document.querySelector('.sync-indicator');
+    if (syncIndicator) {
+      syncIndicator.style.opacity = '0.6';
+    }
+
+    await Promise.allSettled([
+      fetchShops().then(renderShopsList),
+      fetchBookings().then(() => {
+        renderManageBookingsTable();
+        updateDashboardStats();
+      }),
+      fetchCmsLayout().then(renderCmsLayout),
+      fetchCmsCustomSections().then(renderCustomSectionsList)
+    ]);
+
+    lastSyncTimestamp = Date.now();
+    const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    
+    if (syncIndicator) {
+      syncIndicator.style.opacity = '1';
+      syncIndicator.title = `Live Platform Sync Active • Last synced: ${timeStr} (Click to refresh now)`;
+      const label = syncIndicator.querySelector('span:not(.pulse-dot)');
+      if (label) label.textContent = `Live (${timeStr})`;
+    }
+
+    if (isManual) {
+      showToast('Live platform data synchronized with server', 'success');
+    }
+  } catch (syncErr) {
+    console.warn('[SyncEngine] Background sync warning:', syncErr);
+  }
+}
+
+function startLiveSyncEngine() {
+  if (liveSyncInterval) clearInterval(liveSyncInterval);
+  // Auto-sync every 15 seconds
+  liveSyncInterval = setInterval(() => syncLiveAdminData(false), 15000);
+
+  const syncIndicator = document.querySelector('.sync-indicator');
+  if (syncIndicator) {
+    syncIndicator.style.cursor = 'pointer';
+    syncIndicator.addEventListener('click', () => syncLiveAdminData(true));
+  }
+}
+
+window.syncLiveAdminData = syncLiveAdminData;
+window.startLiveSyncEngine = startLiveSyncEngine;
+
+
 
 // ============================================================
 // HELPDESK AI & CUSTOMER SUPPORT SYSTEM CONSOLE
@@ -6166,3 +6649,9 @@ setInterval(pollRealtimeInstantBookings, 4000);
 
 
 
+
+
+// Start Live Real-Time Poller
+if (typeof window !== "undefined") {
+  setTimeout(startLiveSyncEngine, 3000);
+}
